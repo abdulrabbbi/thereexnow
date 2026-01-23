@@ -1,0 +1,6 @@
+mutation translator_translate($input: TranslateInput) {
+  translator_translate(input: $input) {
+    result
+    status
+  }
+}

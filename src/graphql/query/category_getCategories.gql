@@ -1,0 +1,25 @@
+query category_getCategories(
+  $skip: Int
+  $take: Int
+  $where: CategoriesFilterInput
+  $order: [CategoriesSortInput!]
+) {
+  category_getCategories {
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        id
+        name
+        subCategories {
+          id
+          name
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+    status
+  }
+}

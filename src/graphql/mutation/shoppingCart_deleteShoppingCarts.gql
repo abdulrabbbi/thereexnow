@@ -1,0 +1,5 @@
+mutation shoppingCart_deleteShoppingCarts {
+  shoppingCart_deleteShoppingCarts {
+    status
+  }
+}

@@ -1,0 +1,38 @@
+mutation request_createRequest($input: RequestInput) {
+  request_createRequest(input: $input) {
+    result {
+      address
+      city
+      state
+      zipCode
+      requestStatus
+      requestProducts {
+        count
+        price
+        color
+        requestId
+        id
+      }
+      notifications {
+        notificationType
+        userId
+        requestId
+        isRead
+        id
+      }
+      user {
+        platformType
+        language
+        fullName
+        address
+        id
+      }
+      userId
+      id
+      isDeleted
+      createdDate
+      lastModifiedDate
+    }
+    status
+  }
+}

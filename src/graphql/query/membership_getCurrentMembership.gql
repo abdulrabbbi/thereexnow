@@ -1,0 +1,14 @@
+query membership_getCurrentMembership {
+  membership_getCurrentMembership {
+    status
+    result {
+      id
+      createdDate
+      planId
+      paymentAmount
+      isDeleted
+      endDate
+      provider
+    }
+  }
+}

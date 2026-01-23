@@ -1,0 +1,9 @@
+mutation user_sendSms($input: SmsInput) {
+  user_sendSms(input: $input) {
+    result {
+      code
+      value
+    }
+    status
+  }
+}

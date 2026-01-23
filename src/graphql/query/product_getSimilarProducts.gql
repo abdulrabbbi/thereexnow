@@ -1,0 +1,40 @@
+query product_getSimilarProducts(
+  $skip: Int
+  $take: Int
+  $where: ProductsFilterInput
+  $order: [ProductsSortInput!]
+  $productId: Int!
+) {
+  product_getSimilarProducts(productId: $productId) {
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        name
+        description
+        photoUrl
+        otherMediaUrl
+        price
+        colors
+        exerciseProducts {
+          id
+          exercise {
+            name
+            subCategoryId
+          }
+          exerciseId
+        }
+        requestProducts {
+          count
+        }
+        id
+        isDeleted
+        lastModifiedDate
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+    status
+  }
+}

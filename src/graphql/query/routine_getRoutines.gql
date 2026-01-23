@@ -1,0 +1,40 @@
+query routine_getRoutines(
+  $skip: Int
+  $take: Int
+  $where: RoutinesFilterInput
+  $order: [RoutinesSortInput!]
+) {
+  routine_getRoutines {
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        id
+        name
+        description
+        routineExercises {
+          id
+          set
+          note
+          reps
+          hold
+          perform
+          holdType
+          exerciseId
+          performType
+          exercise {
+            id
+            name
+            note
+            photoUrl
+            otherMediaUrl
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+    status
+  }
+}

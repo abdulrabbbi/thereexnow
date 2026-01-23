@@ -1,0 +1,25 @@
+query customizedExercise_getAll(
+  $skip: Int
+  $take: Int
+  $where: CustomizedExerciseFilterInput
+  $order: [CustomizedExerciseSortInput!]
+) {
+  customizedExercise_getAll {
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        note
+        reps
+        hold
+        holdType
+        set
+        perform
+        performType
+        userId
+        exerciseId
+        id
+      }
+      totalCount
+    }
+    status
+  }
+}

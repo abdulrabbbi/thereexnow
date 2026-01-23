@@ -1,0 +1,22 @@
+query user_signIn {
+  user_signIn {
+    status
+    result {
+      id
+      city
+      email
+      state
+      gender
+      address
+      country
+      zipCode
+      language
+      fullName
+      photoUrl
+      occupation
+      phoneNumber
+      countryCode
+      yearsOfExperience
+    }
+  }
+}

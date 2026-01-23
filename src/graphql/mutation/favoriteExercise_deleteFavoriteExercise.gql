@@ -1,0 +1,5 @@
+mutation exercise_deleteFavoriteExercise($id: Int!) {
+  favoriteExercise_deleteFavoriteExercise(exerciseId: $id) {
+    status
+  }
+}

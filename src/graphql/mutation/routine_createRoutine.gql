@@ -1,0 +1,53 @@
+mutation routine_createRoutine(
+  $name: String!
+  $note: String!
+  $fileUrl: String!
+  $exercises: [RoutineExerciseInput!]
+) {
+  routine_createRoutine(
+    input: {
+      name: $name
+      description: $note
+      fileUrl: $fileUrl
+      routineExercises: $exercises
+    }
+  ) {
+    result {
+      name
+      description
+      routineExercises {
+        note
+        reps
+        hold
+        holdType
+        perform
+        performType
+        set
+        exercise {
+          name
+          id
+          photoUrl
+          otherMediaUrl
+          exerciseProducts {
+            product {
+              name
+              price
+              colors
+              description
+              id
+            }
+          }
+        }
+      }
+      user {
+        fullName
+      }
+      userId
+      fileUrl
+      id
+      isDeleted
+      lastModifiedDate
+    }
+    status
+  }
+}

@@ -1,0 +1,9 @@
+query user_getEmailVerified($userIdInFirebase: String!) {
+  user_getEmailVerified(userIdInFirebase: $userIdInFirebase) {
+    result {
+      verifiedInFirebase
+      verifiedInDatabase
+    }
+    status
+  }
+}

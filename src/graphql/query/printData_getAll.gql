@@ -1,0 +1,17 @@
+query printData_getAll(
+  $skip: Int
+  $take: Int
+  $where: PrintDataFilterInput
+  $order: [PrintDataSortInput!]
+) {
+  printData_getAll {
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        id
+        data
+      }
+      totalCount
+    }
+    status
+  }
+}

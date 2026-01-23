@@ -1,0 +1,39 @@
+query plan_getPlans(
+  $skip: Int
+  $take: Int
+  $where: PlansFilterInput
+  $order: [PlansSortInput!]
+) {
+  plan_getPlans {
+    status
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+      items {
+        title
+        description
+        priceMonth
+        priceYear
+        features
+        memberships {
+          startDate
+          endDate
+          paymentAmount
+          userId
+          planId
+          id
+          isDeleted
+          createdDate
+          lastModifiedDate
+        }
+        id
+        isDeleted
+        createdDate
+        lastModifiedDate
+      }
+    }
+  }
+}

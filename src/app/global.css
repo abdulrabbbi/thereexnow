@@ -1,0 +1,39 @@
+@page {
+  size: A4 !important;
+  margin: 0 !important;
+  padding: 10mm !important;
+}
+
+@media print {
+  html {
+    width: 210mm !important; /* force actual A4 width */
+  }
+
+  body {
+    padding: 0mm !important;
+    margin: 0mm !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .print-area-Container {
+    padding: 0 !important;
+  }
+
+  .no-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .print_item_container {
+    flex-direction: row !important;
+  }
+
+  .hide-in-print {
+    display: none !important;
+  }
+
+  .printViewHeader {
+    margin-top: 0 !important;
+  }
+}

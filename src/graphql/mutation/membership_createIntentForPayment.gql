@@ -1,0 +1,10 @@
+mutation membership_createIntentForPayment($amount: Float!) {
+  membership_createIntentForPayment(amount: $amount) {
+    result {
+      clientSecret
+      intentId
+      publishableKey
+    }
+    status
+  }
+}

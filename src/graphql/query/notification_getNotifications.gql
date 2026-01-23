@@ -1,0 +1,24 @@
+query notification_getNotifications(
+  $skip: Int
+  $take: Int
+  $where: NotificationFilterInput
+  $order: [NotificationSortInput!]
+) {
+  notification_getNotifications {
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        id
+        notificationType
+        description
+        requestId
+        isRead
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+    status
+  }
+}

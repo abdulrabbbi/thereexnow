@@ -1,0 +1,2264 @@
+"""
+The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.
+"""
+directive @defer(
+  """
+  If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to.
+  """
+  label: String
+
+  """
+  Deferred when true.
+  """
+  if: Boolean
+) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"""
+The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`.
+"""
+directive @stream(
+  """
+  If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to.
+  """
+  label: String
+
+  """
+  The initial elements that shall be send down to the consumer.
+  """
+  initialCount: Int! = 0
+
+  """
+  Streamed when true.
+  """
+  if: Boolean
+) on FIELD
+
+directive @authorize(
+  """
+  The name of the authorization policy that determines access to the annotated resource.
+  """
+  policy: String
+
+  """
+  Roles that are allowed to access the annotated resource.
+  """
+  roles: [String!]
+
+  """
+  Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field.
+  """
+  apply: ApplyPolicy! = BEFORE_RESOLVER
+) repeatable on SCHEMA | OBJECT | FIELD_DEFINITION
+
+type Query {
+  category_getCategories: ListResponseBaseOfCategories
+  exercise_getExercises: ListResponseBaseOfExerciseDto
+  favoriteExercise_getFavoriteExercises: ListResponseBaseOfFavoriteExercises
+  plan_getPlans: ListResponseBaseOfPlans
+  product_getProducts: ListResponseBaseOfProducts
+  request_getRequest(entityId: Int!): SingleResponseBaseOfRequests
+  request_getRequests: ListResponseBaseOfRequestDto
+  shoppingCart_getShoppingCarts: ListResponseBaseOfShoppingCart
+  user_getUsers: ListResponseBaseOfUserDto
+  appSettings_getAppSettings: ListResponseBaseOfAppSettings
+  customizedExercise_getCustomizedExercise(
+    exerciseId: Int!
+  ): ResponseBaseOfCustomizedExercise
+  customizedExercise_getAll: ListResponseBaseOfCustomizedExercise
+  dashboard_getTodayRevenueAndActiveUsers: ResponseBaseOfDashboardTodayRevenueAndActiveUserDto
+  dashboard_getActiveUsers(
+    startDate: DateTime!
+    endDate: DateTime!
+  ): ListResponseBaseOfDashboardActiveUserDto
+  dashboard_getRevenuePlan(
+    startDate: DateTime!
+    endDate: DateTime!
+  ): ListResponseBaseOfDashboardRevenuePlanDto
+  dashboard_getRevenueShop(
+    startDate: DateTime!
+    endDate: DateTime!
+  ): ListResponseBaseOfDashboardRevenueShopDto
+  dashboard_getExerciseInCategory: ListResponseBaseOfDashboardExerciseInCategoryDto
+  exercise_getProducts(exerciseId: Int!): ListResponseBaseOfProducts
+  membership_getCurrentMembership: SingleResponseBaseOfMemberships
+  notification_getNotifications: ListResponseBaseOfNotification
+  notification_getNotificationsWithSetRead: ListResponseBaseOfNotification
+  printData_getAll: ListResponseBaseOfPrintData
+  product_getSimilarProducts(productId: Int!): ListResponseBaseOfProducts
+  responseStatus_getAll: [ResponseStatus]
+  routine_getRoutine(entityId: Int!): SingleResponseBaseOfRoutines
+  routine_getRoutines: ListResponseBaseOfRoutines
+  subcategory_getSubcategoriesByCategoryId(
+    categoryId: Int!
+  ): ListResponseBaseOfSubCategories
+  user_getEmailVerified(
+    userIdInFirebase: String
+  ): ResponseBaseOfEmailVerifiedDto
+  user_signIn: ResponseBaseOfUsers
+  user_getCurrentUser: ResponseBaseOfUsers
+  items: ListResponseBaseOfUsers
+}
+
+type Mutation {
+  category_createCategory(input: CategoryInput): ResponseBaseOfCategories
+  category_updateCategory(input: CategoryInput): ResponseBaseOfCategories
+  category_deleteCategory(entityId: Int!): ResponseBase
+  customizedExercise_updateCustomizedExercise(
+    input: CustomizedExerciseInput
+  ): ResponseBaseOfCustomizedExercise
+  exercise_createExercise(input: ExerciseInput): ResponseBaseOfExercises
+  exercise_updateExercise(input: ExerciseInput): ResponseBaseOfExercises
+  exercise_deleteExercise(entityId: Int!, description: String): ResponseBase
+  exerciseProduct_createExerciseProduct(
+    input: ExerciseProductInput
+  ): ResponseBaseOfExerciseProducts
+  exerciseProduct_deleteExerciseProduct(entityId: Int!): ResponseBase
+  favoriteExercise_createFavoriteExercise(
+    input: FavoriteExerciseInput
+  ): ResponseBaseOfFavoriteExercises
+  favoriteExercise_deleteFavoriteExercise(exerciseId: Int!): ResponseBase
+  membership_createMembership(input: MembershipInput): ResponseBaseOfMemberships
+  plan_createPlan(input: PlanInput): ResponseBaseOfPlans
+  plan_updatePlan(input: PlanInput): ResponseBaseOfPlans
+  plan_deletePlan(entityId: Int!): ResponseBase
+  product_createProduct(input: ProductInput): ResponseBaseOfProducts
+  product_updateProduct(input: ProductInput): ResponseBaseOfProducts
+  product_deleteProduct(entityId: Int!): ResponseBase
+  request_createRequest(input: RequestInput): ResponseBaseOfRequests
+  request_updateRequest(input: RequestUpdateInput): ResponseBaseOfRequests
+  shoppingCart_createShoppingCart(
+    input: ShoppingCartInput
+  ): ResponseBaseOfShoppingCart
+  shoppingCart_updateShoppingCart(
+    input: ShoppingCartInput
+  ): ResponseBaseOfShoppingCart
+  shoppingCart_deleteShoppingCart(entityId: Int!): ResponseBase
+  user_updateUser(input: UserInput): ResponseBaseOfUsers
+  user_deleteUser(userId: Int): ResponseBase
+  appSettings_updateAppSettings(
+    input: AppSettingsInput
+  ): ResponseBaseOfAppSettings
+  exerciseProduct_createExerciseProducts(
+    input: [ExerciseProductInput]
+  ): ResponseBaseOfExerciseProducts
+  exerciseProduct_deleteExerciseProducts(entityIdList: [Int!]): ResponseBase
+  membership_createIntentForPayment(amount: Float!): ResponseBaseOfIntentDto
+  membership_createSubscription(
+    planId: Int!
+    forYear: Boolean!
+  ): ResponseBaseOfString
+  membership_cancelSubscription: ResponseStatus
+  notification_setShown(notificationId: Int!): ResponseBaseOfNotification
+  notification_setRead(notificationId: Int!): ResponseBaseOfNotification
+  notification_delete(notificationId: Int!): ResponseStatus
+  printData_createPrintData(input: PrintDataInput): ResponseBaseOfPrintData
+  routine_createRoutine(input: RoutineInput): ResponseBaseOfRoutines
+  routine_updateRoutine(input: RoutineInput): ResponseBaseOfRoutines
+  routine_deleteRoutine(entityId: Int!): ResponseBase
+  shoppingCart_deleteShoppingCarts: ResponseBase
+  subcategory_createSubcategory(
+    input: SubCategoryInput
+  ): ResponseBaseOfSubCategories
+  subcategory_updateSubcategory(
+    input: SubCategoryInput
+  ): ResponseBaseOfSubCategories
+  subcategory_deleteSubcategory(entityId: Int!): ResponseBase
+  translator_translate(input: TranslateInput): ResponseBaseOfString
+  user_forgotPassword(email: String): ResponseStatus
+  user_signUp(input: UserInput): ResponseBaseOfUsers
+  user_incrementQrCodeCount: ResponseBaseOfUsers
+  user_incrementPrintCount: ResponseBaseOfUsers
+  user_incrementEmailCount: ResponseBaseOfUsers
+  user_incrementSmsCount: ResponseBaseOfUsers
+  user_sendEmail(input: EmailInput): ResponseBaseOfResponseStatus
+  user_sendEmailForSupport(input: EmailInput): ResponseBaseOfResponseStatus
+  user_sendSms(input: SmsInput): ResponseBaseOfResponseStatus
+  user_confirmUser(confirmKey: String): ResponseBaseOfUsers
+  delete(entityId: Int!): ResponseBase
+}
+
+type Subscription {
+  notificationAdded(userId: Int!): Notification
+}
+
+enum ApplyPolicy {
+  BEFORE_RESOLVER
+  AFTER_RESOLVER
+}
+
+type ListResponseBaseOfCategories {
+  result(
+    skip: Int
+    take: Int
+    where: CategoriesFilterInput
+    order: [CategoriesSortInput!]
+  ): CategoriesCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfExercises {
+  result(
+    skip: Int
+    take: Int
+    where: ExercisesFilterInput
+    order: [ExercisesSortInput!]
+  ): ExercisesCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfFavoriteExercises {
+  result(
+    skip: Int
+    take: Int
+    where: FavoriteExercisesFilterInput
+    order: [FavoriteExercisesSortInput!]
+  ): FavoriteExercisesCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfPlans {
+  result(
+    skip: Int
+    take: Int
+    where: PlansFilterInput
+    order: [PlansSortInput!]
+  ): PlansCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfProducts {
+  result(
+    skip: Int
+    take: Int
+    where: ProductsFilterInput
+    order: [ProductsSortInput!]
+  ): ProductsCollectionSegment
+  status: Any
+}
+
+type ResponseBaseOfRequests {
+  result: Requests
+  status: Any
+}
+
+type ListResponseBaseOfRequests {
+  result(
+    skip: Int
+    take: Int
+    where: RequestsFilterInput
+    order: [RequestsSortInput!]
+  ): RequestsCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfShoppingCart {
+  result(
+    skip: Int
+    take: Int
+    where: ShoppingCartFilterInput
+    order: [ShoppingCartSortInput!]
+  ): ShoppingCartCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfUsers {
+  result(
+    skip: Int
+    take: Int
+    where: UsersFilterInput
+    order: [UsersSortInput!]
+  ): UsersCollectionSegment
+  status: Any
+}
+
+type ResponseBaseOfCategories {
+  result: Categories
+  status: Any
+}
+
+input CategoryInput {
+  id: Int
+  name: String
+  order: Int
+  subCategories: [SubCategoryForCategoryInput]
+}
+
+type ResponseBase {
+  status: Any
+}
+
+type ResponseBaseOfCustomizedExercise {
+  result: CustomizedExercise
+  status: Any
+}
+
+input CustomizedExerciseInput {
+  note: String
+  reps: Int
+  hold: Int
+  holdType: HoldType
+  set: Int
+  perform: Int
+  performType: PerformType
+  exerciseId: Int!
+  otherMediaUrl: String
+}
+
+type ResponseBaseOfExercises {
+  result: Exercises
+  status: Any
+}
+
+input ExerciseInput {
+  id: Int
+  name: String
+  photoUrl: String
+  otherMediaUrl: String
+  note: String
+  reps: Int
+  hold: Int
+  holdType: HoldType
+  set: Int
+  perform: Int
+  performType: PerformType
+  subCategoryId: Int
+}
+
+type ResponseBaseOfExerciseProducts {
+  result: ExerciseProducts
+  status: Any
+}
+
+input ExerciseProductInput {
+  exerciseId: Int!
+  productId: Int!
+}
+
+type ResponseBaseOfFavoriteExercises {
+  result: FavoriteExercises
+  status: Any
+}
+
+input FavoriteExerciseInput {
+  exerciseId: Int!
+}
+
+type ResponseBaseOfMemberships {
+  result: Memberships
+  status: Any
+}
+
+input MembershipInput {
+  paymentAmount: Decimal
+  planId: Int!
+}
+
+type ResponseBaseOfPlans {
+  result: Plans
+  status: Any
+}
+
+input PlanInput {
+  id: Int
+  title: String
+  description: String
+  priceMonth: Decimal
+  priceYear: Decimal
+  features: String
+}
+
+type ResponseBaseOfProducts {
+  result: Products
+  status: Any
+}
+
+input ProductInput {
+  id: Int
+  name: String
+  description: String
+  photoUrl: String
+  otherMediaUrl: String
+  colors: String
+  price: Decimal
+  isActive: Boolean
+}
+
+input RequestInput {
+  address: String
+  countryCode: String
+  city: String
+  state: String
+  zipCode: String
+  requestProducts: [RequestProductInput]
+}
+
+input RequestUpdateInput {
+  id: Int!
+  requestStatus: RequestStatus
+}
+
+type ResponseBaseOfShoppingCart {
+  result: ShoppingCart
+  status: Any
+}
+
+input ShoppingCartInput {
+  id: Int
+  count: Int!
+  color: String
+  productId: Int!
+}
+
+type ResponseBaseOfUsers {
+  result: Users
+  status: Any
+}
+
+input UserInput {
+  id: Int
+  language: String
+  fullName: String
+  gender: Gender
+  occupation: String
+  address: String
+  yearsOfExperience: Int
+  city: String
+  state: String
+  zipCode: String
+  phoneNumber: String
+  platformType: PlatformType
+  userType: UserType
+  photoUrl: String
+  confirmUrl: String
+  email: String
+  isSocial: Boolean
+  countryCode: String
+  country: String
+}
+
+input CategoriesFilterInput {
+  and: [CategoriesFilterInput!]
+  or: [CategoriesFilterInput!]
+  name: StringOperationFilterInput
+  order: ComparableInt32OperationFilterInput
+  subCategories: ListFilterInputTypeOfSubCategoriesFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input CategoriesSortInput {
+  name: SortEnumType
+  order: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type CategoriesCollectionSegment {
+  items: [Categories]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+scalar Any
+
+input ExercisesFilterInput {
+  and: [ExercisesFilterInput!]
+  or: [ExercisesFilterInput!]
+  name: StringOperationFilterInput
+  photoUrl: StringOperationFilterInput
+  otherMediaUrl: StringOperationFilterInput
+  note: StringOperationFilterInput
+  reps: ComparableInt32OperationFilterInput
+  hold: ComparableInt32OperationFilterInput
+  set: ComparableInt32OperationFilterInput
+  perform: ComparableInt32OperationFilterInput
+  holdType: HoldTypeOperationFilterInput
+  performType: PerformTypeOperationFilterInput
+  subCategoryId: ComparableInt32OperationFilterInput
+  subCategory: SubCategoriesFilterInput
+  favoriteCount: ComparableInt32OperationFilterInput
+  exerciseProducts: ListFilterInputTypeOfExerciseProductsFilterInput
+  favoriteExercises: ListFilterInputTypeOfFavoriteExercisesFilterInput
+  routineExercises: ListFilterInputTypeOfRoutineExercisesFilterInput
+  customizedExercises: ListFilterInputTypeOfCustomizedExerciseFilterInput
+  notifications: ListFilterInputTypeOfNotificationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input ExercisesSortInput {
+  name: SortEnumType
+  photoUrl: SortEnumType
+  otherMediaUrl: SortEnumType
+  note: SortEnumType
+  reps: SortEnumType
+  hold: SortEnumType
+  set: SortEnumType
+  perform: SortEnumType
+  holdType: SortEnumType
+  performType: SortEnumType
+  subCategoryId: SortEnumType
+  subCategory: SubCategoriesSortInput
+  favoriteCount: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type ExercisesCollectionSegment {
+  items: [Exercises]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input FavoriteExercisesFilterInput {
+  and: [FavoriteExercisesFilterInput!]
+  or: [FavoriteExercisesFilterInput!]
+  user: UsersFilterInput
+  exercise: ExercisesFilterInput
+  userId: ComparableInt32OperationFilterInput
+  exerciseId: ComparableInt32OperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input FavoriteExercisesSortInput {
+  user: UsersSortInput
+  exercise: ExercisesSortInput
+  userId: SortEnumType
+  exerciseId: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type FavoriteExercisesCollectionSegment {
+  items: [FavoriteExercises]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input PlansFilterInput {
+  and: [PlansFilterInput!]
+  or: [PlansFilterInput!]
+  title: StringOperationFilterInput
+  description: StringOperationFilterInput
+  priceMonth: ComparableNullableOfDecimalOperationFilterInput
+  priceYear: ComparableNullableOfDecimalOperationFilterInput
+  features: StringOperationFilterInput
+  memberships: ListFilterInputTypeOfMembershipsFilterInput
+  priceIdYear: StringOperationFilterInput
+  priceIdMonth: StringOperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input PlansSortInput {
+  title: SortEnumType
+  description: SortEnumType
+  priceMonth: SortEnumType
+  priceYear: SortEnumType
+  features: SortEnumType
+  priceIdYear: SortEnumType
+  priceIdMonth: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type PlansCollectionSegment {
+  items: [Plans]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input ProductsFilterInput {
+  and: [ProductsFilterInput!]
+  or: [ProductsFilterInput!]
+  name: StringOperationFilterInput
+  description: StringOperationFilterInput
+  photoUrl: StringOperationFilterInput
+  otherMediaUrl: StringOperationFilterInput
+  price: ComparableDecimalOperationFilterInput
+  colors: StringOperationFilterInput
+  isActive: BooleanOperationFilterInput
+  exerciseProducts: ListFilterInputTypeOfExerciseProductsFilterInput
+  requestProducts: ListFilterInputTypeOfRequestProductsFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input ProductsSortInput {
+  name: SortEnumType
+  description: SortEnumType
+  photoUrl: SortEnumType
+  otherMediaUrl: SortEnumType
+  price: SortEnumType
+  colors: SortEnumType
+  isActive: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type ProductsCollectionSegment {
+  items: [Products]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input RequestsFilterInput {
+  and: [RequestsFilterInput!]
+  or: [RequestsFilterInput!]
+  address: StringOperationFilterInput
+  countryCode: StringOperationFilterInput
+  city: StringOperationFilterInput
+  state: StringOperationFilterInput
+  zipCode: StringOperationFilterInput
+  requestStatus: RequestStatusOperationFilterInput
+  requestProducts: ListFilterInputTypeOfRequestProductsFilterInput
+  notifications: ListFilterInputTypeOfNotificationFilterInput
+  user: UsersFilterInput
+  userId: ComparableInt32OperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input RequestsSortInput {
+  address: SortEnumType
+  countryCode: SortEnumType
+  city: SortEnumType
+  state: SortEnumType
+  zipCode: SortEnumType
+  requestStatus: SortEnumType
+  user: UsersSortInput
+  userId: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type RequestsCollectionSegment {
+  items: [Requests]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input ShoppingCartFilterInput {
+  and: [ShoppingCartFilterInput!]
+  or: [ShoppingCartFilterInput!]
+  count: ComparableInt32OperationFilterInput
+  color: StringOperationFilterInput
+  user: UsersFilterInput
+  product: ProductsFilterInput
+  userId: ComparableInt32OperationFilterInput
+  productId: ComparableInt32OperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input ShoppingCartSortInput {
+  count: SortEnumType
+  color: SortEnumType
+  user: UsersSortInput
+  product: ProductsSortInput
+  userId: SortEnumType
+  productId: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type ShoppingCartCollectionSegment {
+  items: [ShoppingCart]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input UsersFilterInput {
+  and: [UsersFilterInput!]
+  or: [UsersFilterInput!]
+  platformType: NullableOfPlatformTypeOperationFilterInput
+  language: StringOperationFilterInput
+  fullName: StringOperationFilterInput
+  gender: NullableOfGenderOperationFilterInput
+  occupation: StringOperationFilterInput
+  address: StringOperationFilterInput
+  yearsOfExperience: ComparableNullableOfInt32OperationFilterInput
+  city: StringOperationFilterInput
+  state: StringOperationFilterInput
+  zipCode: StringOperationFilterInput
+  phoneNumber: StringOperationFilterInput
+  userType: UserTypeOperationFilterInput
+  photoUrl: StringOperationFilterInput
+  sentSmsCount: ComparableInt32OperationFilterInput
+  sentEmailCount: ComparableInt32OperationFilterInput
+  printCount: ComparableInt32OperationFilterInput
+  qrCodeCount: ComparableInt32OperationFilterInput
+  isConfirmed: BooleanOperationFilterInput
+  countryCode: StringOperationFilterInput
+  country: StringOperationFilterInput
+  favoriteExercises: ListFilterInputTypeOfFavoriteExercisesFilterInput
+  customizedExercises: ListFilterInputTypeOfCustomizedExerciseFilterInput
+  memberships: ListFilterInputTypeOfMembershipsFilterInput
+  requests: ListFilterInputTypeOfRequestsFilterInput
+  routines: ListFilterInputTypeOfRoutinesFilterInput
+  notifications: ListFilterInputTypeOfNotificationFilterInput
+  shoppingCarts: ListFilterInputTypeOfShoppingCartFilterInput
+  userActiveDays: ListFilterInputTypeOfUserActiveDayFilterInput
+  stripeCustomerId: StringOperationFilterInput
+  externalId: StringOperationFilterInput
+  email: StringOperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input UsersSortInput {
+  platformType: SortEnumType
+  language: SortEnumType
+  fullName: SortEnumType
+  gender: SortEnumType
+  occupation: SortEnumType
+  address: SortEnumType
+  yearsOfExperience: SortEnumType
+  city: SortEnumType
+  state: SortEnumType
+  zipCode: SortEnumType
+  phoneNumber: SortEnumType
+  userType: SortEnumType
+  photoUrl: SortEnumType
+  sentSmsCount: SortEnumType
+  sentEmailCount: SortEnumType
+  printCount: SortEnumType
+  qrCodeCount: SortEnumType
+  isConfirmed: SortEnumType
+  countryCode: SortEnumType
+  country: SortEnumType
+  stripeCustomerId: SortEnumType
+  externalId: SortEnumType
+  email: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type UsersCollectionSegment {
+  items: [Users]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+input ComparableInt32OperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int!]
+  nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input ListFilterInputTypeOfSubCategoriesFilterInput {
+  all: SubCategoriesFilterInput
+  none: SubCategoriesFilterInput
+  some: SubCategoriesFilterInput
+  any: Boolean
+}
+
+input BooleanOperationFilterInput {
+  eq: Boolean
+  neq: Boolean
+}
+
+input ComparableDateTimeOperationFilterInput {
+  eq: DateTime
+  neq: DateTime
+  in: [DateTime!]
+  nin: [DateTime!]
+  gt: DateTime
+  ngt: DateTime
+  gte: DateTime
+  ngte: DateTime
+  lt: DateTime
+  nlt: DateTime
+  lte: DateTime
+  nlte: DateTime
+}
+
+input ComparableNullableOfDateTimeOperationFilterInput {
+  eq: DateTime
+  neq: DateTime
+  in: [DateTime]
+  nin: [DateTime]
+  gt: DateTime
+  ngt: DateTime
+  gte: DateTime
+  ngte: DateTime
+  lt: DateTime
+  nlt: DateTime
+  lte: DateTime
+  nlte: DateTime
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+type Categories {
+  name: String
+  order: Int!
+  subCategories: [SubCategories]
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+"""
+Information about the offset pagination.
+"""
+type CollectionSegmentInfo {
+  """
+  Indicates whether more items exist following the set defined by the clients arguments.
+  """
+  hasNextPage: Boolean!
+
+  """
+  Indicates whether more items exist prior the set defined by the clients arguments.
+  """
+  hasPreviousPage: Boolean!
+}
+
+input HoldTypeOperationFilterInput {
+  eq: HoldType
+  neq: HoldType
+  in: [HoldType!]
+  nin: [HoldType!]
+}
+
+input PerformTypeOperationFilterInput {
+  eq: PerformType
+  neq: PerformType
+  in: [PerformType!]
+  nin: [PerformType!]
+}
+
+input SubCategoriesFilterInput {
+  and: [SubCategoriesFilterInput!]
+  or: [SubCategoriesFilterInput!]
+  name: StringOperationFilterInput
+  categoryId: ComparableInt32OperationFilterInput
+  category: CategoriesFilterInput
+  exercises: ListFilterInputTypeOfExercisesFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input ListFilterInputTypeOfExerciseProductsFilterInput {
+  all: ExerciseProductsFilterInput
+  none: ExerciseProductsFilterInput
+  some: ExerciseProductsFilterInput
+  any: Boolean
+}
+
+input ListFilterInputTypeOfFavoriteExercisesFilterInput {
+  all: FavoriteExercisesFilterInput
+  none: FavoriteExercisesFilterInput
+  some: FavoriteExercisesFilterInput
+  any: Boolean
+}
+
+input ListFilterInputTypeOfRoutineExercisesFilterInput {
+  all: RoutineExercisesFilterInput
+  none: RoutineExercisesFilterInput
+  some: RoutineExercisesFilterInput
+  any: Boolean
+}
+
+input ListFilterInputTypeOfCustomizedExerciseFilterInput {
+  all: CustomizedExerciseFilterInput
+  none: CustomizedExerciseFilterInput
+  some: CustomizedExerciseFilterInput
+  any: Boolean
+}
+
+input ListFilterInputTypeOfNotificationFilterInput {
+  all: NotificationFilterInput
+  none: NotificationFilterInput
+  some: NotificationFilterInput
+  any: Boolean
+}
+
+input SubCategoriesSortInput {
+  name: SortEnumType
+  categoryId: SortEnumType
+  category: CategoriesSortInput
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type Exercises {
+  name: String
+  photoUrl: String
+  otherMediaUrl: String
+  note: String
+  reps: Int!
+  hold: Int!
+  set: Int!
+  perform: Int!
+  holdType: HoldType!
+  performType: PerformType!
+  subCategoryId: Int!
+  subCategory: SubCategories
+  favoriteCount: Int!
+  exerciseProducts: [ExerciseProducts]
+  favoriteExercises: [FavoriteExercises]
+  routineExercises: [RoutineExercises]
+  customizedExercises: [CustomizedExercise]
+  notifications: [Notification]
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+type FavoriteExercises {
+  user: Users
+  exercise: Exercises
+  userId: Int!
+  exerciseId: Int!
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+input ComparableNullableOfDecimalOperationFilterInput {
+  eq: Decimal
+  neq: Decimal
+  in: [Decimal]
+  nin: [Decimal]
+  gt: Decimal
+  ngt: Decimal
+  gte: Decimal
+  ngte: Decimal
+  lt: Decimal
+  nlt: Decimal
+  lte: Decimal
+  nlte: Decimal
+}
+
+input ListFilterInputTypeOfMembershipsFilterInput {
+  all: MembershipsFilterInput
+  none: MembershipsFilterInput
+  some: MembershipsFilterInput
+  any: Boolean
+}
+
+type Plans {
+  title: String
+  description: String
+  priceMonth: Decimal
+  priceYear: Decimal
+  features: String
+  memberships: [Memberships]
+  priceIdYear: String
+  priceIdMonth: String
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+input ComparableDecimalOperationFilterInput {
+  eq: Decimal
+  neq: Decimal
+  in: [Decimal!]
+  nin: [Decimal!]
+  gt: Decimal
+  ngt: Decimal
+  gte: Decimal
+  ngte: Decimal
+  lt: Decimal
+  nlt: Decimal
+  lte: Decimal
+  nlte: Decimal
+}
+
+input ListFilterInputTypeOfRequestProductsFilterInput {
+  all: RequestProductsFilterInput
+  none: RequestProductsFilterInput
+  some: RequestProductsFilterInput
+  any: Boolean
+}
+
+type Products {
+  name: String
+  description: String
+  photoUrl: String
+  otherMediaUrl: String
+  price: Decimal!
+  colors: String
+  isActive: Boolean
+  exerciseProducts: [ExerciseProducts]
+  requestProducts: [RequestProducts]
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+input RequestStatusOperationFilterInput {
+  eq: RequestStatus
+  neq: RequestStatus
+  in: [RequestStatus!]
+  nin: [RequestStatus!]
+}
+
+type Requests {
+  address: String
+  countryCode: String
+  city: String
+  state: String
+  zipCode: String
+  requestStatus: RequestStatus!
+  requestProducts: [RequestProducts]
+  notifications: [Notification]
+  user: Users
+  userId: Int!
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+type ShoppingCart {
+  count: Int!
+  color: String
+  user: Users
+  product: Products
+  userId: Int!
+  productId: Int!
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+input NullableOfPlatformTypeOperationFilterInput {
+  eq: PlatformType
+  neq: PlatformType
+  in: [PlatformType]
+  nin: [PlatformType]
+}
+
+input NullableOfGenderOperationFilterInput {
+  eq: Gender
+  neq: Gender
+  in: [Gender]
+  nin: [Gender]
+}
+
+input ComparableNullableOfInt32OperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int]
+  nin: [Int]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input UserTypeOperationFilterInput {
+  eq: UserType
+  neq: UserType
+  in: [UserType!]
+  nin: [UserType!]
+}
+
+input ListFilterInputTypeOfRequestsFilterInput {
+  all: RequestsFilterInput
+  none: RequestsFilterInput
+  some: RequestsFilterInput
+  any: Boolean
+}
+
+input ListFilterInputTypeOfRoutinesFilterInput {
+  all: RoutinesFilterInput
+  none: RoutinesFilterInput
+  some: RoutinesFilterInput
+  any: Boolean
+}
+
+input ListFilterInputTypeOfShoppingCartFilterInput {
+  all: ShoppingCartFilterInput
+  none: ShoppingCartFilterInput
+  some: ShoppingCartFilterInput
+  any: Boolean
+}
+
+input ListFilterInputTypeOfUserActiveDayFilterInput {
+  all: UserActiveDayFilterInput
+  none: UserActiveDayFilterInput
+  some: UserActiveDayFilterInput
+  any: Boolean
+}
+
+type Users {
+  platformType: PlatformType
+  language: String
+  fullName: String
+  gender: Gender
+  occupation: String
+  address: String
+  yearsOfExperience: Int
+  city: String
+  state: String
+  zipCode: String
+  phoneNumber: String
+  userType: UserType!
+  photoUrl: String
+  sentSmsCount: Int!
+  sentEmailCount: Int!
+  printCount: Int!
+  qrCodeCount: Int!
+  isConfirmed: Boolean!
+  countryCode: String
+  country: String
+  favoriteExercises: [FavoriteExercises]
+  customizedExercises: [CustomizedExercise]
+  memberships: [Memberships]
+  requests: [Requests]
+  routines: [Routines]
+  notifications: [Notification]
+  shoppingCarts: [ShoppingCart]
+  userActiveDays: [UserActiveDay]
+  stripeCustomerId: String
+  externalId: String
+  email: String
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+input ListFilterInputTypeOfExercisesFilterInput {
+  all: ExercisesFilterInput
+  none: ExercisesFilterInput
+  some: ExercisesFilterInput
+  any: Boolean
+}
+
+input ExerciseProductsFilterInput {
+  and: [ExerciseProductsFilterInput!]
+  or: [ExerciseProductsFilterInput!]
+  exercise: ExercisesFilterInput
+  product: ProductsFilterInput
+  exerciseId: ComparableInt32OperationFilterInput
+  productId: ComparableInt32OperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input RoutineExercisesFilterInput {
+  and: [RoutineExercisesFilterInput!]
+  or: [RoutineExercisesFilterInput!]
+  note: StringOperationFilterInput
+  reps: ComparableInt32OperationFilterInput
+  hold: ComparableInt32OperationFilterInput
+  holdType: HoldTypeOperationFilterInput
+  set: ComparableInt32OperationFilterInput
+  perform: ComparableInt32OperationFilterInput
+  performType: PerformTypeOperationFilterInput
+  routine: RoutinesFilterInput
+  exercise: ExercisesFilterInput
+  routineId: ComparableInt32OperationFilterInput
+  exerciseId: ComparableInt32OperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input CustomizedExerciseFilterInput {
+  and: [CustomizedExerciseFilterInput!]
+  or: [CustomizedExerciseFilterInput!]
+  note: StringOperationFilterInput
+  reps: ComparableInt32OperationFilterInput
+  hold: ComparableInt32OperationFilterInput
+  holdType: HoldTypeOperationFilterInput
+  set: ComparableInt32OperationFilterInput
+  perform: ComparableInt32OperationFilterInput
+  performType: PerformTypeOperationFilterInput
+  user: UsersFilterInput
+  exercise: ExercisesFilterInput
+  userId: ComparableInt32OperationFilterInput
+  exerciseId: ComparableInt32OperationFilterInput
+  otherMediaUrl: StringOperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input NotificationFilterInput {
+  and: [NotificationFilterInput!]
+  or: [NotificationFilterInput!]
+  notificationType: NotificationTypeOperationFilterInput
+  user: UsersFilterInput
+  userId: ComparableInt32OperationFilterInput
+  request: RequestsFilterInput
+  requestId: ComparableNullableOfInt32OperationFilterInput
+  isRead: BooleanOperationFilterInput
+  isShown: BooleanOperationFilterInput
+  description: StringOperationFilterInput
+  exercise: ExercisesFilterInput
+  exerciseId: ComparableNullableOfInt32OperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input MembershipsFilterInput {
+  and: [MembershipsFilterInput!]
+  or: [MembershipsFilterInput!]
+  startDate: ComparableDateTimeOperationFilterInput
+  endDate: ComparableDateTimeOperationFilterInput
+  paymentAmount: ComparableDecimalOperationFilterInput
+  user: UsersFilterInput
+  plan: PlansFilterInput
+  userId: ComparableInt32OperationFilterInput
+  planId: ComparableInt32OperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input RequestProductsFilterInput {
+  and: [RequestProductsFilterInput!]
+  or: [RequestProductsFilterInput!]
+  count: ComparableInt32OperationFilterInput
+  price: ComparableDecimalOperationFilterInput
+  color: StringOperationFilterInput
+  request: RequestsFilterInput
+  product: ProductsFilterInput
+  requestId: ComparableInt32OperationFilterInput
+  productId: ComparableInt32OperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input RoutinesFilterInput {
+  and: [RoutinesFilterInput!]
+  or: [RoutinesFilterInput!]
+  name: StringOperationFilterInput
+  description: StringOperationFilterInput
+  routineExercises: ListFilterInputTypeOfRoutineExercisesFilterInput
+  user: UsersFilterInput
+  userId: ComparableInt32OperationFilterInput
+  fileUrl: StringOperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input UserActiveDayFilterInput {
+  and: [UserActiveDayFilterInput!]
+  or: [UserActiveDayFilterInput!]
+  userId: ComparableInt32OperationFilterInput
+  user: UsersFilterInput
+  day: ComparableDateTimeOperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input NotificationTypeOperationFilterInput {
+  eq: NotificationType
+  neq: NotificationType
+  in: [NotificationType!]
+  nin: [NotificationType!]
+}
+
+enum NotificationType {
+  FreePlanPurchased
+  RequestCreated
+  RequestAccepted
+  MaxTryFreePlanForEmail
+  MaxTryFreePlanForSms
+  MaxTryFreePlanForRoutine
+  ExerciseDeleted
+  RequestRejected
+  PlanUpgraded
+  MaxTryFreePlanForQrCode
+  MaxTryFreePlanForPrint
+}
+
+type UserActiveDay {
+  userId: Int!
+  user: Users
+  day: DateTime!
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+type Routines {
+  name: String
+  description: String
+  routineExercises: [RoutineExercises]
+  user: Users
+  userId: Int!
+  fileUrl: String
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+enum UserType {
+  NORMAL_USER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+  PREFER_NOT_TO_SAY
+  OTHER
+}
+
+enum PlatformType {
+  WEB
+  APP
+}
+
+type SubCategories {
+  name: String
+  categoryId: Int!
+  category: Categories
+  exercises: [Exercises]
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+"""
+The `DateTime` scalar represents an ISO-8601 compliant date time type.
+"""
+scalar DateTime
+
+enum RequestStatus {
+  WAITING
+  ACCEPTED
+  REJECTED
+}
+
+input RequestProductInput {
+  count: Int!
+  color: String
+  productId: Int!
+}
+
+enum PerformType {
+  HOUR
+  DAY
+  WEEK
+}
+
+type RoutineExercises {
+  note: String
+  reps: Int!
+  hold: Int!
+  holdType: HoldType!
+  set: Int!
+  perform: Int!
+  performType: PerformType!
+  routine: Routines
+  exercise: Exercises
+  routineId: Int!
+  exerciseId: Int!
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+"""
+The built-in `Decimal` scalar type.
+"""
+scalar Decimal
+
+type Memberships {
+  startDate: DateTime!
+  endDate: DateTime!
+  paymentAmount: Decimal!
+  user: Users
+  plan: Plans
+  userId: Int!
+  planId: Int!
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+type ExerciseProducts {
+  exercise: Exercises
+  product: Products
+  exerciseId: Int!
+  productId: Int!
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+type RequestProducts {
+  count: Int!
+  price: Decimal!
+  color: String
+  request: Requests
+  product: Products
+  requestId: Int!
+  productId: Int!
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+enum HoldType {
+  MIN
+  SEC
+}
+
+type CustomizedExercise {
+  note: String
+  reps: Int!
+  hold: Int!
+  holdType: HoldType!
+  set: Int!
+  perform: Int!
+  performType: PerformType!
+  user: Users
+  exercise: Exercises
+  userId: Int!
+  exerciseId: Int!
+  otherMediaUrl: String
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+input SubCategoryForCategoryInput {
+  id: Int
+  name: String
+}
+
+type Notification {
+  notificationType: NotificationType!
+  user: Users
+  userId: Int!
+  request: Requests
+  requestId: Int
+  isRead: Boolean!
+  isShown: Boolean!
+  description: String
+  exercise: Exercises
+  exerciseId: Int
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+type ResponseBaseOfEmailVerifiedDto {
+  result: EmailVerifiedDto
+  status: Any
+}
+
+type ListResponseBaseOfUserDto {
+  result(
+    skip: Int
+    take: Int
+    where: UserDtoFilterInput
+    order: [UserDtoSortInput!]
+  ): UserDtoCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfSubCategories {
+  result(
+    skip: Int
+    take: Int
+    where: SubCategoriesFilterInput
+    order: [SubCategoriesSortInput!]
+  ): SubCategoriesCollectionSegment
+  status: Any
+}
+
+type SingleResponseBaseOfRoutines {
+  result: Routines
+  status: Any
+}
+
+type ListResponseBaseOfRoutines {
+  result(
+    skip: Int
+    take: Int
+    where: RoutinesFilterInput
+    order: [RoutinesSortInput!]
+  ): RoutinesCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfRequestDto {
+  result(
+    skip: Int
+    take: Int
+    where: RequestDtoFilterInput
+    order: [RequestDtoSortInput!]
+  ): RequestDtoCollectionSegment
+  status: Any
+}
+
+type SingleResponseBaseOfRequests {
+  result: Requests
+  status: Any
+}
+
+type ListResponseBaseOfPrintData {
+  result(
+    skip: Int
+    take: Int
+    where: PrintDataFilterInput
+    order: [PrintDataSortInput!]
+  ): PrintDataCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfNotification {
+  result(
+    skip: Int
+    take: Int
+    where: NotificationFilterInput
+    order: [NotificationSortInput!]
+  ): NotificationCollectionSegment
+  status: Any
+}
+
+type SingleResponseBaseOfMemberships {
+  result: Memberships
+  status: Any
+}
+
+type ListResponseBaseOfMemberships {
+  result(
+    skip: Int
+    take: Int
+    where: MembershipsFilterInput
+    order: [MembershipsSortInput!]
+  ): MembershipsCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfExerciseDto {
+  result(
+    skip: Int
+    take: Int
+    where: ExerciseDtoFilterInput
+    order: [ExerciseDtoSortInput!]
+  ): ExerciseDtoCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfDashboardExerciseInCategoryDto {
+  result(
+    skip: Int
+    take: Int
+    where: DashboardExerciseInCategoryDtoFilterInput
+    order: [DashboardExerciseInCategoryDtoSortInput!]
+  ): DashboardExerciseInCategoryDtoCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfDashboardRevenueShopDto {
+  result(
+    skip: Int
+    take: Int
+    where: DashboardRevenueShopDtoFilterInput
+    order: [DashboardRevenueShopDtoSortInput!]
+  ): DashboardRevenueShopDtoCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfDashboardRevenuePlanDto {
+  result(
+    skip: Int
+    take: Int
+    where: DashboardRevenuePlanDtoFilterInput
+    order: [DashboardRevenuePlanDtoSortInput!]
+  ): DashboardRevenuePlanDtoCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfDashboardActiveUserDto {
+  result(
+    skip: Int
+    take: Int
+    where: DashboardActiveUserDtoFilterInput
+    order: [DashboardActiveUserDtoSortInput!]
+  ): DashboardActiveUserDtoCollectionSegment
+  status: Any
+}
+
+type ResponseBaseOfDashboardTodayRevenueAndActiveUserDto {
+  result: DashboardTodayRevenueAndActiveUserDto
+  status: Any
+}
+
+type ListResponseBaseOfCustomizedExercise {
+  result(
+    skip: Int
+    take: Int
+    where: CustomizedExerciseFilterInput
+    order: [CustomizedExerciseSortInput!]
+  ): CustomizedExerciseCollectionSegment
+  status: Any
+}
+
+type ListResponseBaseOfAppSettings {
+  result(
+    skip: Int
+    take: Int
+    where: AppSettingsFilterInput
+    order: [AppSettingsSortInput!]
+  ): AppSettingsCollectionSegment
+  status: Any
+}
+
+input SmsInput {
+  phoneNumber: String
+  text: String
+}
+
+input EmailInput {
+  to: String
+  subject: String
+  content: String
+}
+
+type ResponseBaseOfResponseStatus {
+  result: ResponseStatus
+  status: Any
+}
+
+input TranslateInput {
+  fromLanguage: String
+  toLanguage: String
+  text: String
+}
+
+input SubCategoryInput {
+  id: Int
+  categoryId: Int!
+  name: String
+}
+
+type ResponseBaseOfSubCategories {
+  result: SubCategories
+  status: Any
+}
+
+input RoutineInput {
+  id: Int
+  name: String
+  description: String
+  fileUrl: String
+  routineExercises: [RoutineExerciseInput]
+}
+
+type ResponseBaseOfRoutines {
+  result: Routines
+  status: Any
+}
+
+input PrintDataInput {
+  data: String
+}
+
+type ResponseBaseOfPrintData {
+  result: PrintData
+  status: Any
+}
+
+input NotificationInput {
+  userId: Int!
+  notificationType: NotificationType!
+  requestId: Int
+  exerciseId: Int
+  description: String
+}
+
+type ResponseBaseOfNotification {
+  result: Notification
+  status: Any
+}
+
+type ResponseStatus {
+  code: Int!
+  value: String
+}
+
+type ResponseBaseOfString {
+  result: String
+  status: Any
+}
+
+type ResponseBaseOfIntentDto {
+  result: IntentDto
+  status: Any
+}
+
+input AppSettingsInput {
+  privacyPolicy: String
+  termsAndConditions: String
+  shippingCost: Decimal
+}
+
+type ResponseBaseOfAppSettings {
+  result: AppSettings
+  status: Any
+}
+
+input UserDtoFilterInput {
+  and: [UserDtoFilterInput!]
+  or: [UserDtoFilterInput!]
+  plan: PlansFilterInput
+  user: UsersFilterInput
+}
+
+input UserDtoSortInput {
+  plan: PlansSortInput
+  user: UsersSortInput
+}
+
+type UserDtoCollectionSegment {
+  items: [UserDto]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+type SubCategoriesCollectionSegment {
+  items: [SubCategories]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input RoutinesSortInput {
+  name: SortEnumType
+  description: SortEnumType
+  user: UsersSortInput
+  userId: SortEnumType
+  fileUrl: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type RoutinesCollectionSegment {
+  items: [Routines]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input RequestDtoFilterInput {
+  and: [RequestDtoFilterInput!]
+  or: [RequestDtoFilterInput!]
+  user: UsersFilterInput
+  request: RequestsFilterInput
+  productCount: ComparableInt32OperationFilterInput
+}
+
+input RequestDtoSortInput {
+  user: UsersSortInput
+  request: RequestsSortInput
+  productCount: SortEnumType
+}
+
+type RequestDtoCollectionSegment {
+  items: [RequestDto]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input PrintDataFilterInput {
+  and: [PrintDataFilterInput!]
+  or: [PrintDataFilterInput!]
+  userId: ComparableInt32OperationFilterInput
+  data: StringOperationFilterInput
+  user: UsersFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input PrintDataSortInput {
+  userId: SortEnumType
+  data: SortEnumType
+  user: UsersSortInput
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type PrintDataCollectionSegment {
+  items: [PrintData]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input NotificationSortInput {
+  notificationType: SortEnumType
+  user: UsersSortInput
+  userId: SortEnumType
+  request: RequestsSortInput
+  requestId: SortEnumType
+  isRead: SortEnumType
+  isShown: SortEnumType
+  description: SortEnumType
+  exercise: ExercisesSortInput
+  exerciseId: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type NotificationCollectionSegment {
+  items: [Notification]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input MembershipsSortInput {
+  startDate: SortEnumType
+  endDate: SortEnumType
+  paymentAmount: SortEnumType
+  user: UsersSortInput
+  plan: PlansSortInput
+  userId: SortEnumType
+  planId: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type MembershipsCollectionSegment {
+  items: [Memberships]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input ExerciseDtoFilterInput {
+  and: [ExerciseDtoFilterInput!]
+  or: [ExerciseDtoFilterInput!]
+  exercise: ExercisesFilterInput
+  products: ListFilterInputTypeOfProductsFilterInput
+  isFavorite: BooleanOperationFilterInput
+  favoriteCount: ComparableInt32OperationFilterInput
+}
+
+input ExerciseDtoSortInput {
+  exercise: ExercisesSortInput
+  isFavorite: SortEnumType
+  favoriteCount: SortEnumType
+}
+
+type ExerciseDtoCollectionSegment {
+  items: [ExerciseDto]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input DashboardExerciseInCategoryDtoFilterInput {
+  and: [DashboardExerciseInCategoryDtoFilterInput!]
+  or: [DashboardExerciseInCategoryDtoFilterInput!]
+  categoryId: ComparableInt32OperationFilterInput
+  categoryName: StringOperationFilterInput
+  count: ComparableInt32OperationFilterInput
+}
+
+input DashboardExerciseInCategoryDtoSortInput {
+  categoryId: SortEnumType
+  categoryName: SortEnumType
+  count: SortEnumType
+}
+
+type DashboardExerciseInCategoryDtoCollectionSegment {
+  items: [DashboardExerciseInCategoryDto]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input DashboardRevenueShopDtoFilterInput {
+  and: [DashboardRevenueShopDtoFilterInput!]
+  or: [DashboardRevenueShopDtoFilterInput!]
+  date: ComparableDateTimeOperationFilterInput
+  amount: ComparableDecimalOperationFilterInput
+}
+
+input DashboardRevenueShopDtoSortInput {
+  date: SortEnumType
+  amount: SortEnumType
+}
+
+type DashboardRevenueShopDtoCollectionSegment {
+  items: [DashboardRevenueShopDto]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input DashboardRevenuePlanDtoFilterInput {
+  and: [DashboardRevenuePlanDtoFilterInput!]
+  or: [DashboardRevenuePlanDtoFilterInput!]
+  date: ComparableDateTimeOperationFilterInput
+  amount: ComparableDecimalOperationFilterInput
+}
+
+input DashboardRevenuePlanDtoSortInput {
+  date: SortEnumType
+  amount: SortEnumType
+}
+
+type DashboardRevenuePlanDtoCollectionSegment {
+  items: [DashboardRevenuePlanDto]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input DashboardActiveUserDtoFilterInput {
+  and: [DashboardActiveUserDtoFilterInput!]
+  or: [DashboardActiveUserDtoFilterInput!]
+  date: ComparableDateTimeOperationFilterInput
+  count: ComparableInt32OperationFilterInput
+}
+
+input DashboardActiveUserDtoSortInput {
+  date: SortEnumType
+  count: SortEnumType
+}
+
+type DashboardActiveUserDtoCollectionSegment {
+  items: [DashboardActiveUserDto]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input CustomizedExerciseSortInput {
+  note: SortEnumType
+  reps: SortEnumType
+  hold: SortEnumType
+  holdType: SortEnumType
+  set: SortEnumType
+  perform: SortEnumType
+  performType: SortEnumType
+  user: UsersSortInput
+  exercise: ExercisesSortInput
+  userId: SortEnumType
+  exerciseId: SortEnumType
+  otherMediaUrl: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type CustomizedExerciseCollectionSegment {
+  items: [CustomizedExercise]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+input AppSettingsFilterInput {
+  and: [AppSettingsFilterInput!]
+  or: [AppSettingsFilterInput!]
+  privacyPolicy: StringOperationFilterInput
+  termsAndConditions: StringOperationFilterInput
+  shippingCost: ComparableNullableOfDecimalOperationFilterInput
+  id: ComparableInt32OperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  createdDate: ComparableDateTimeOperationFilterInput
+  lastModifiedDate: ComparableNullableOfDateTimeOperationFilterInput
+}
+
+input AppSettingsSortInput {
+  privacyPolicy: SortEnumType
+  termsAndConditions: SortEnumType
+  shippingCost: SortEnumType
+  id: SortEnumType
+  isDeleted: SortEnumType
+  createdDate: SortEnumType
+  lastModifiedDate: SortEnumType
+}
+
+type AppSettingsCollectionSegment {
+  items: [AppSettings]
+
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+type UserDto {
+  plan: Plans
+  user: Users
+}
+
+type RequestDto {
+  user: Users
+  request: Requests
+  productCount: Int!
+}
+
+type PrintData {
+  userId: Int!
+  data: String
+  user: Users
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+input ListFilterInputTypeOfProductsFilterInput {
+  all: ProductsFilterInput
+  none: ProductsFilterInput
+  some: ProductsFilterInput
+  any: Boolean
+}
+
+type ExerciseDto {
+  exercise: Exercises
+  products: [Products]
+  isFavorite: Boolean!
+  favoriteCount: Int!
+}
+
+type DashboardExerciseInCategoryDto {
+  categoryId: Int!
+  categoryName: String
+  count: Int!
+}
+
+type DashboardRevenueShopDto {
+  date: DateTime!
+  amount: Decimal!
+}
+
+type DashboardRevenuePlanDto {
+  date: DateTime!
+  amount: Decimal!
+}
+
+type DashboardActiveUserDto {
+  date: DateTime!
+  count: Int!
+}
+
+type AppSettings {
+  privacyPolicy: String
+  termsAndConditions: String
+  shippingCost: Decimal
+  id: Int!
+  isDeleted: Boolean!
+  createdDate: DateTime!
+  lastModifiedDate: DateTime
+}
+
+type IntentDto {
+  clientSecret: String
+  intentId: String
+  publishableKey: String
+}
+
+input RoutineExerciseInput {
+  id: Int
+  note: String
+  reps: Int
+  hold: Int
+  holdType: HoldType
+  set: Int
+  perform: Int
+  performType: PerformType
+  exerciseId: Int
+}
+
+type DashboardTodayRevenueAndActiveUserDto {
+  revenuePlan: Decimal!
+  revenueShop: Decimal!
+  activeUser: Int!
+}
+
+type EmailVerifiedDto {
+  verifiedInFirebase: Boolean!
+  verifiedInDatabase: Boolean!
+}

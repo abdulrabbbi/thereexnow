@@ -1,0 +1,10 @@
+mutation user_confirmUser($confirmKey: String) {
+  user_confirmUser(confirmKey: $confirmKey) {
+    result {
+      id
+      email
+      fullName
+    }
+    status
+  }
+}

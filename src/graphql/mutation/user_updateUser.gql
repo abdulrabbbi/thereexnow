@@ -1,0 +1,5 @@
+mutation user_updateUser($input: UserInput) {
+  user_updateUser(input: $input) {
+    status
+  }
+}

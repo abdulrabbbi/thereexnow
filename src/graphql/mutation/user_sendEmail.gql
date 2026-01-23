@@ -1,0 +1,9 @@
+mutation user_sendEmail($input: EmailInput) {
+  user_sendEmail(input: $input) {
+    result {
+      code
+      value
+    }
+    status
+  }
+}

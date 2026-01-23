@@ -1,0 +1,42 @@
+query product_getProducts(
+  $skip: Int
+  $take: Int
+  $where: ProductsFilterInput
+  $order: [ProductsSortInput!]
+) {
+  product_getProducts {
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        name
+        description
+        photoUrl
+        otherMediaUrl
+        price
+        colors
+        isActive
+        exerciseProducts {
+          id
+          exercise {
+            name
+            subCategoryId
+            photoUrl
+            id
+          }
+          exerciseId
+        }
+        requestProducts {
+          count
+        }
+        id
+        isDeleted
+        lastModifiedDate
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+    status
+  }
+}

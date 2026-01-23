@@ -1,0 +1,16 @@
+mutation membership_createMembership($input: MembershipInput) {
+  membership_createMembership(input: $input) {
+    result {
+      startDate
+      endDate
+      paymentAmount
+      userId
+      planId
+      id
+      isDeleted
+      createdDate
+      lastModifiedDate
+    }
+    status
+  }
+}

@@ -1,0 +1,44 @@
+query notification_getNotificationsWithSetRead(
+  $skip: Int
+  $take: Int
+  $where: NotificationFilterInput
+  $order: [NotificationSortInput!]
+) {
+  notification_getNotificationsWithSetRead {
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        notificationType
+        isRead
+        isShown
+        user {
+          fullName
+          phoneNumber
+          userType
+          photoUrl
+          sentSmsCount
+          externalId
+          email
+          id
+        }
+        userId
+        request {
+          requestStatus
+          userId
+          id
+          user {
+            fullName
+          }
+        }
+        requestId
+        id
+        createdDate
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+    status
+  }
+}

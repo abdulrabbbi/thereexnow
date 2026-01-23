@@ -1,0 +1,66 @@
+query user_getCurrentUser {
+  user_getCurrentUser {
+    result {
+      platformType
+      language
+      fullName
+      gender
+      occupation
+      address
+      yearsOfExperience
+      city
+      state
+      zipCode
+      phoneNumber
+      userType
+      photoUrl
+      sentSmsCount
+      sentEmailCount
+      printCount
+      qrCodeCount
+      isConfirmed
+      countryCode
+      country
+      memberships {
+        startDate
+        endDate
+        paymentAmount
+        plan {
+          title
+          description
+          priceMonth
+          priceYear
+          features
+          memberships {
+            startDate
+            endDate
+            paymentAmount
+            userId
+            planId
+            id
+            isDeleted
+            createdDate
+            lastModifiedDate
+          }
+          id
+          isDeleted
+          createdDate
+          lastModifiedDate
+        }
+        userId
+        planId
+        id
+        isDeleted
+        createdDate
+        lastModifiedDate
+      }
+      externalId
+      email
+      id
+      isDeleted
+      createdDate
+      lastModifiedDate
+    }
+    status
+  }
+}

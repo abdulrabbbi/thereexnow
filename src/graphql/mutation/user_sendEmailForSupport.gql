@@ -1,0 +1,9 @@
+mutation user_sendEmailForSupport($input: EmailInput) {
+  user_sendEmailForSupport(input: $input) {
+    result {
+      code
+      value
+    }
+    status
+  }
+}

@@ -1,0 +1,23 @@
+mutation shoppingCart_createShoppingCart($input: ShoppingCartInput) {
+  shoppingCart_createShoppingCart(input: $input) {
+    status
+    result {
+      count
+      color
+      userId
+      productId
+      id
+      isDeleted
+      product {
+        name
+        description
+        photoUrl
+        otherMediaUrl
+        price
+        colors
+        id
+        isDeleted
+      }
+    }
+  }
+}

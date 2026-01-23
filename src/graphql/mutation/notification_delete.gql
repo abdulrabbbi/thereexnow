@@ -1,0 +1,6 @@
+mutation notification_delete($notificationId: Int!) {
+  notification_delete(notificationId: $notificationId) {
+    code
+    value
+  }
+}

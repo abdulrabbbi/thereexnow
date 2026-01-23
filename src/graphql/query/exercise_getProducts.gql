@@ -1,0 +1,28 @@
+query exercise_getProducts(
+  $skip: Int
+  $take: Int
+  $where: ProductsFilterInput
+  $order: [ProductsSortInput!]
+  $exerciseId: Int!
+) {
+  exercise_getProducts(exerciseId: $exerciseId) {
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        name
+        id
+        photoUrl
+        description
+        price
+        otherMediaUrl
+        colors
+        isActive
+        isDeleted
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+}

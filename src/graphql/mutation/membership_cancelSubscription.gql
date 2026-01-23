@@ -1,0 +1,6 @@
+mutation membership_cancelSubscription {
+  membership_cancelSubscription {
+    code
+    value
+  }
+}

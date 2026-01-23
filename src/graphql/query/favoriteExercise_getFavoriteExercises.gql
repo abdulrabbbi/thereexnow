@@ -1,0 +1,46 @@
+query favoriteExercise_getFavoriteExercises(
+  $skip: Int
+  $take: Int
+  $where: FavoriteExercisesFilterInput
+  $order: [FavoriteExercisesSortInput!]
+) {
+  favoriteExercise_getFavoriteExercises {
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        exercise {
+          id
+          name
+          photoUrl
+          note
+          reps
+          hold
+          set
+          perform
+          performType
+          holdType
+          favoriteCount
+          createdDate
+          otherMediaUrl
+          exerciseProducts {
+            product {
+              name
+              description
+              otherMediaUrl
+              photoUrl
+              price
+              colors
+              id
+              createdDate
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+    status
+  }
+}

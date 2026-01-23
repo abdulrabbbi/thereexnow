@@ -1,0 +1,75 @@
+query routine_getRoutine($entityId: Int!) {
+  routine_getRoutine(entityId: $entityId) {
+    result {
+      name
+      description
+      routineExercises {
+        note
+        reps
+        routineId
+        id
+        set
+        hold
+        holdType
+        perform
+        performType
+        exerciseId
+        routineId
+        exercise {
+          name
+          note
+          reps
+          photoUrl
+          id
+          otherMediaUrl
+          reps
+          hold
+          exerciseProducts {
+            exerciseId
+            id
+            productId
+            isDeleted
+            product {
+              name
+              description
+              photoUrl
+              otherMediaUrl
+              price
+              colors
+
+              exerciseProducts {
+                id
+                exercise {
+                  name
+                  subCategoryId
+                }
+                exerciseId
+              }
+              requestProducts {
+                count
+              }
+              id
+              isDeleted
+              lastModifiedDate
+            }
+            exerciseId
+            productId
+            id
+            isDeleted
+          }
+        }
+      }
+      userId
+      id
+      fileUrl
+      user {
+        language
+        fullName
+        gender
+        id
+        email
+      }
+    }
+    status
+  }
+}

@@ -1,0 +1,35 @@
+query shoppingCart_getShoppingCarts(
+  $skip: Int
+  $take: Int
+  $where: ShoppingCartFilterInput
+  $order: [ShoppingCartSortInput!]
+) {
+  shoppingCart_getShoppingCarts {
+    status
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        count
+        color
+        userId
+        productId
+        id
+        isDeleted
+        product {
+          name
+          description
+          photoUrl
+          otherMediaUrl
+          price
+          colors
+          id
+          isDeleted
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+}

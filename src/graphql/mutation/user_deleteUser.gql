@@ -1,0 +1,5 @@
+mutation user_deleteUser($userId: Int) {
+  user_deleteUser(userId: $userId) {
+    status
+  }
+}

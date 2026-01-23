@@ -1,0 +1,22 @@
+mutation customizedExercise_updateCustomizedExercise(
+  $input: CustomizedExerciseInput
+) {
+  customizedExercise_updateCustomizedExercise(input: $input) {
+    result {
+      note
+      reps
+      hold
+      holdType
+      set
+      perform
+      performType
+      userId
+      exerciseId
+      id
+      isDeleted
+      createdDate
+      lastModifiedDate
+    }
+    status
+  }
+}

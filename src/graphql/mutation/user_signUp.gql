@@ -1,0 +1,10 @@
+mutation user_signUp($data: UserInput!) {
+  user_signUp(input: $data) {
+    result {
+      id
+      email
+      fullName
+    }
+    status
+  }
+}

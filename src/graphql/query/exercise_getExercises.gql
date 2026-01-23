@@ -1,0 +1,69 @@
+query exercise_getExercises(
+  $skip: Int
+  $take: Int
+  $where: ExerciseDtoFilterInput
+  $order: [ExerciseDtoSortInput!]
+) {
+  exercise_getExercises {
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        exercise {
+          photoUrl
+          otherMediaUrl
+          id
+          note
+          name
+          reps
+          hold
+          holdType
+          perform
+          performType
+          set
+          createdDate
+          subCategoryId
+          subCategory {
+            id
+            name
+            categoryId
+            category {
+              name
+            }
+          }
+        }
+        isFavorite
+        products {
+          name
+          id
+          photoUrl
+          description
+          price
+          otherMediaUrl
+          colors
+          isActive
+          isDeleted
+          exerciseProducts {
+            exercise {
+              name
+              photoUrl
+              otherMediaUrl
+              note
+              reps
+              hold
+              set
+              perform
+              holdType
+              performType
+              subCategoryId
+            }
+          }
+        }
+        favoriteCount
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+}

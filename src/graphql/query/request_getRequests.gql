@@ -1,0 +1,47 @@
+query request_getRequests(
+  $skip: Int
+  $take: Int
+  $where: RequestDtoFilterInput
+  $order: [RequestDtoSortInput!]
+) {
+  request_getRequests {
+    status
+    result(skip: $skip, take: $take, where: $where, order: $order) {
+      items {
+        user {
+          fullName
+          id
+          photoUrl
+        }
+        request {
+          isDeleted
+          createdDate
+          address
+          city
+          state
+          id
+          userId
+          zipCode
+          requestStatus
+          requestProducts {
+            count
+            price
+            color
+            product {
+              name
+              description
+              photoUrl
+              otherMediaUrl
+              price
+              colors
+            }
+            id
+            productId
+            requestId
+          }
+        }
+      }
+      totalCount
+    }
+  }
+}

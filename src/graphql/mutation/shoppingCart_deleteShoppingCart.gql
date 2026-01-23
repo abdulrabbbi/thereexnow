@@ -1,0 +1,5 @@
+mutation shoppingCart_deleteShoppingCart($id: Int!) {
+  shoppingCart_deleteShoppingCart(entityId: $id) {
+    status
+  }
+}

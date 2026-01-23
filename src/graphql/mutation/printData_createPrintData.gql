@@ -1,0 +1,8 @@
+mutation printData_createPrintData($input: PrintDataInput) {
+  printData_createPrintData(input: $input) {
+    status
+    result {
+      id
+    }
+  }
+}

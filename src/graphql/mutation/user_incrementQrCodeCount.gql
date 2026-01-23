@@ -1,0 +1,8 @@
+mutation user_incrementQrCodeCount {
+  user_incrementQrCodeCount {
+    result {
+      qrCodeCount
+    }
+    status
+  }
+}

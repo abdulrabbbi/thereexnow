@@ -1,0 +1,5 @@
+mutation routine_deleteRoutine($id: Int!) {
+  routine_deleteRoutine(entityId: $id) {
+    status
+  }
+}

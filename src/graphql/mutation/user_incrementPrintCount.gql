@@ -1,0 +1,8 @@
+mutation user_incrementPrintCount {
+  user_incrementPrintCount {
+    result {
+      printCount
+    }
+    status
+  }
+}
