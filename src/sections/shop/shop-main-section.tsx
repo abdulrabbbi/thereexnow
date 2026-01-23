@@ -1,22 +1,20 @@
-import * as HomeConfig from "@/sections/exercises/home-config";
-import { hideScrollY } from "@/theme/styles";
 import { Box, BoxProps } from "@mui/material";
 
-export function ShopMainSection({ children, ...rest }: BoxProps) {
+export function ShopMainSection({ children, sx, ...rest }: BoxProps) {
   return (
     <Box
-      {...rest}
       component="main"
-      sx={{
-        px: 3,
-        flexGrow: 1,
-        display: "flex",
-        flexDirection: "column",
-        height: `calc(100vh - ${HomeConfig.HEADERS_HEIGHT}px)`,
-        maxHeight: `calc(100vh - ${HomeConfig.HEADERS_HEIGHT}px)`,
-        ...hideScrollY,
-        ...rest.sx,
-      }}
+      sx={[
+        {
+          flexGrow: 1,
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          px: { xs: 0, md: 3 },
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
+      {...rest}
     >
       {children}
     </Box>

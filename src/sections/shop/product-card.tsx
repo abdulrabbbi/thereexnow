@@ -76,6 +76,7 @@ const CustomPaper = ({ children, onClick }: PaperProps) => (
       overflow: "hidden",
       userSelect: "none",
       position: "relative",
+      minWidth: 0,
       textDecoration: "none",
       borderColor: (theme) => alpha(theme.palette.grey[500], 0.12),
 

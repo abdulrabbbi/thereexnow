@@ -1,5 +1,6 @@
 "use client";
 
+import { Iconify } from "@/components/iconify";
 import { LoadingScreen } from "@/components/loading-screen";
 import { Categories, ExerciseDto } from "@/graphql/generated";
 import { useGetAllCategories } from "@/hooks/helpers/category";
@@ -23,8 +24,18 @@ import {
   Droppable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { Box, BoxProps, Container, Pagination, Stack } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Button,
+  Container,
+  Divider,
+  Drawer,
+  IconButton,
+  Pagination,
+  Typography,
+} from "@mui/material";
+import Grid from "@mui/material/Grid2";
+import { useEffect, useState } from "react";
 import { EmptyExercisesList } from "../empty-exercises-list";
 import { ExerciseCard } from "../exercise-card";
 import { ExercisesMainSection } from "../exercises-main-section";
@@ -35,7 +46,6 @@ import {
   ExercisesSortSelect,
   ExercisesSortType,
 } from "../exercises-sort-select";
-import * as HomeConfig from "../home-config";
 
 type Props = {
   isFavorite?: boolean;
@@ -48,14 +58,15 @@ export function ExercisesView({ isFavorite = false }: Props) {
   const { authenticated } = useAuth();
   const searchParams = useSearchParams();
 
-  const searchParam = searchParams.get("keyword");
-  const categoryId = searchParams.get("categoryId");
-  const subCategoryId = searchParams.get("subCategoryId");
+  const searchParam = searchParams?.get("keyword") ?? "";
+  const categoryId = searchParams?.get("categoryId") ?? undefined;
+  const subCategoryId = searchParams?.get("subCategoryId") ?? undefined;
 
   const [keyword, setKeyword] = useState("");
   const [sortBy, setSortBy] = useState<ExercisesSortType>(
     ExercisesSortType.DEFAULT
   );
+  const [categoriesDrawerOpen, setCategoriesDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (searchParam && searchParam != keyword) {
@@ -69,8 +80,8 @@ export function ExercisesView({ isFavorite = false }: Props) {
     keyword,
     sort: sortBy,
     page: pagination.page - 1,
-    categoryId: Number(categoryId),
-    subCategoryId: Number(subCategoryId),
+    categoryId: categoryId ? Number(categoryId) : undefined,
+    subCategoryId: subCategoryId ? Number(subCategoryId) : undefined,
   };
 
   const {
@@ -105,7 +116,7 @@ export function ExercisesView({ isFavorite = false }: Props) {
     if (destination.droppableId === "routine-droppable") {
       const exerciseId = parseInt(draggableId.replace("exercise-", ""));
       const exerciseData = data?.find(
-        (item:any) => item.exercise?.id === exerciseId
+        (item: any) => item.exercise?.id === exerciseId
       );
 
       const isExistInBoard = board.data.some(
@@ -153,53 +164,148 @@ export function ExercisesView({ isFavorite = false }: Props) {
           }
         `}
       />
-      <Container maxWidth="xl">
+      <Container
+        maxWidth="xl"
+        sx={{
+          px: { xs: 2, sm: 3 },
+          pt: {
+            xs: `${HEADER.H_MOBILE + 24}px`,
+            md: `${HEADER.H_DESKTOP + 24}px`,
+          },
+          pb: { xs: 4, md: 6 },
+        }}
+      >
         {categoriesLoading ? (
           <LoadingScreen sx={{ height: "60svh" }} />
         ) : (
           <>
-            <Stack
-              py={2}
-              direction="row"
-              alignItems="center"
-              sx={{
-                zIndex: 99,
-                bgcolor: "white",
-                position: "sticky",
-                top: HEADER.H_DESKTOP,
-              }}
-            >
-              <ExercisesSortSelect
-                value={sortBy}
-                sx={{ width: HomeConfig.CATEGORY_WIDTH }}
-                onChange={(value) => {
-                  setSortBy(value);
-                  pagination.onChangePage(undefined, 1);
-                }}
-              />
-
-              <SearchBar
-                value={keyword}
-                onChange={setKeyword}
-                label={t("SEARCH_EXERCISE")}
-                isLoading={!!keyword && isFetching}
-              />
-
-              <ExercisesRoutineActions />
-            </Stack>
-
             <Box
               sx={{
-                mt: 10,
-                display: "flex",
-                height: `calc(100vh - ${HomeConfig.HEADERS_HEIGHT}px)`,
-                maxHeight: `calc(100vh - ${HomeConfig.HEADERS_HEIGHT}px)`,
+                position: "sticky",
+                top: { xs: HEADER.H_MOBILE, md: HEADER.H_DESKTOP },
+                zIndex: 99,
+                bgcolor: "background.paper",
+                py: 2,
+              }}
+            >
+              <Grid
+                container
+                spacing={2}
+                alignItems="center"
+                sx={{ minWidth: 0 }}
+              >
+                <Grid
+                  size={{ xs: 12 }}
+                  sx={{ display: { xs: "block", md: "none" }, minWidth: 0 }}
+                >
+                  <Button
+                    fullWidth
+                    color="inherit"
+                    variant="outlined"
+                    startIcon={<Iconify icon="eva:menu-2-fill" />}
+                    onClick={() => setCategoriesDrawerOpen(true)}
+                    sx={{ justifyContent: "flex-start" }}
+                  >
+                    {t("CATEGORIES")}
+                  </Button>
+                </Grid>
+
+                <Grid
+                  size={{ xs: 12, sm: 4, md: 3, lg: 3 }}
+                  sx={{ minWidth: 0 }}
+                >
+                  <ExercisesSortSelect
+                    value={sortBy}
+                    onChange={(value) => {
+                      setSortBy(value);
+                      pagination.onChangePage(undefined, 1);
+                    }}
+                  />
+                </Grid>
+
+                <Grid
+                  size={{ xs: 12, sm: 8, md: 5, lg: 5 }}
+                  sx={{ minWidth: 0 }}
+                >
+                  <SearchBar
+                    value={keyword}
+                    onChange={setKeyword}
+                    label={t("SEARCH_EXERCISE")}
+                    isLoading={!!keyword && isFetching}
+                    slotProps={{
+                      root: {
+                        px: { xs: 0, sm: 2 },
+                        direction: { xs: "column", sm: "row" },
+                        alignItems: { xs: "stretch", sm: "center" },
+                        sx: { minWidth: 0 },
+                      },
+                      button: {
+                        sx: { width: { xs: 1, sm: 130 } },
+                      },
+                    }}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4, lg: 4 }} sx={{ minWidth: 0 }}>
+                  <ExercisesRoutineActions />
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Drawer
+              open={categoriesDrawerOpen}
+              onClose={() => setCategoriesDrawerOpen(false)}
+              PaperProps={{
+                sx: {
+                  width: { xs: "85vw", sm: 360 },
+                  maxWidth: 360,
+                },
               }}
             >
               <Box
                 sx={{
+                  px: 2,
+                  py: 1.5,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography variant="h6">{t("CATEGORIES")}</Typography>
+                <IconButton
+                  onClick={() => setCategoriesDrawerOpen(false)}
+                  aria-label="Close categories"
+                >
+                  <Iconify icon="eva:close-fill" />
+                </IconButton>
+              </Box>
+
+              <Divider />
+
+              <Box sx={{ p: 2, minWidth: 0, ...hideScrollY }}>
+                <ExercisesNav
+                  data={categoriesData as Array<Categories>}
+                  source={isFavorite ? "favorites" : "exercises"}
+                  onItemClick={() => setCategoriesDrawerOpen(false)}
+                />
+              </Box>
+            </Drawer>
+
+            <Box
+              sx={{
+                mt: 3,
+                display: { xs: "block", md: "flex" },
+                alignItems: "flex-start",
+                gap: 3,
+                minWidth: 0,
+              }}
+            >
+              <Box
+                sx={{
+                  display: { xs: "none", md: "block" },
                   flexShrink: 0,
-                  width: HomeConfig.CATEGORY_WIDTH,
+                  width: { md: 280, lg: 300 },
+                  minWidth: 0,
                   ...hideScrollY,
                 }}
               >
@@ -209,101 +315,118 @@ export function ExercisesView({ isFavorite = false }: Props) {
                 />
               </Box>
 
-              <ExercisesMainSection>
-                {isLoading ? (
-                  <LoadingScreen sx={{ height: "60svh" }} />
-                ) : data?.length ? (
-                  <Droppable
-                    droppableId="exercises-droppable"
-                    type="EXERCISE"
-                    isDropDisabled={true}
-                  >
+              <Grid container spacing={3} sx={{ flex: 1, minWidth: 0 }}>
+                <Grid size={{ xs: 12, md: 8 }} sx={{ minWidth: 0 }}>
+                  <ExercisesMainSection>
+                    {isLoading ? (
+                      <LoadingScreen sx={{ height: "60svh" }} />
+                    ) : data?.length ? (
+                      <Droppable
+                        droppableId="exercises-droppable"
+                        type="EXERCISE"
+                        isDropDisabled={true}
+                      >
+                        {(provided) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            sx={{ width: 1, minWidth: 0 }}
+                          >
+                            <Grid container spacing={2.5} sx={{ minWidth: 0 }}>
+                              {data?.map((item: any, index) => (
+                                <Grid
+                                  key={`exercise-${item.exercise?.id}`}
+                                  size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+                                  sx={{ minWidth: 0 }}
+                                >
+                                  <Draggable
+                                    draggableId={`exercise-${item.exercise?.id}`}
+                                    index={index}
+                                  >
+                                    {(provided, snapshot) => (
+                                      <ExerciseCard
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        isFavorite={isFavorite}
+                                        data={item as ExerciseDto}
+                                        style={{
+                                          ...provided.draggableProps.style,
+                                          transform: snapshot.isDragging
+                                            ? provided.draggableProps.style
+                                                ?.transform
+                                            : "none",
+                                          opacity: snapshot.isDragging ? 0.5 : 1,
+                                          zIndex: snapshot.isDragging
+                                            ? 9999
+                                            : "auto",
+                                        }}
+                                      />
+                                    )}
+                                  </Draggable>
+                                </Grid>
+                              ))}
+                            </Grid>
+                            {provided.placeholder}
+                          </Box>
+                        )}
+                      </Droppable>
+                    ) : (
+                      <EmptyExercisesList
+                        isFilterApplied={!!keyword}
+                        onResetFilters={onResetFilters}
+                      />
+                    )}
+
+                    <Pagination
+                      shape="rounded"
+                      variant="outlined"
+                      count={totalCount}
+                      page={pagination.page}
+                      onChange={pagination.onChangePage}
+                      sx={{ my: 4, alignSelf: "center" }}
+                    />
+                  </ExercisesMainSection>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }} sx={{ minWidth: 0 }}>
+                  <Droppable droppableId="routine-droppable" type="EXERCISE">
                     {(provided) => (
-                      <GridLayout
+                      <Box
                         ref={provided.innerRef}
                         {...provided.droppableProps}
+                        sx={{
+                          position: "relative",
+                          width: 1,
+                          minWidth: 0,
+                          minHeight: { xs: 240, sm: 320, md: 480 },
+                        }}
                       >
-                        {data?.map((item:any, index) => (
-                          <Draggable
-                            key={`exercise-${item.exercise?.id}`}
-                            draggableId={`exercise-${item.exercise?.id}`}
-                            index={index}
-                          >
-                            {(provided, snapshot) => (
-                              <ExerciseCard
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                isFavorite={isFavorite}
-                                data={item as ExerciseDto}
-                                style={{
-                                  ...provided.draggableProps.style,
-                                  transform: snapshot.isDragging
-                                    ? provided.draggableProps.style?.transform
-                                    : "none",
-                                  opacity: snapshot.isDragging ? 0.5 : 1,
-                                  zIndex: snapshot.isDragging ? 9999 : "auto",
-                                }}
-                              />
-                            )}
-                          </Draggable>
-                        ))}
-                        {provided.placeholder}
-                      </GridLayout>
+                        <Box
+                          sx={{
+                            position: "relative",
+                            zIndex: 1,
+                            height: "100%",
+                            display: "flex",
+                            minWidth: 0,
+                          }}
+                        >
+                          <ExercisesRoutine />
+                        </Box>
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            inset: 0,
+                            pointerEvents: "none",
+                          }}
+                        >
+                          {provided.placeholder}
+                        </Box>
+                      </Box>
                     )}
                   </Droppable>
-                ) : (
-                  <EmptyExercisesList
-                    isFilterApplied={!!keyword}
-                    onResetFilters={onResetFilters}
-                  />
-                )}
-
-                <Pagination
-                  shape="rounded"
-                  variant="outlined"
-                  count={totalCount}
-                  page={pagination.page}
-                  onChange={pagination.onChangePage}
-                  sx={{ my: 4, alignSelf: "center" }}
-                />
-              </ExercisesMainSection>
-
-              <Droppable droppableId="routine-droppable" type="EXERCISE">
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    style={{
-                      flexShrink: 0,
-                      position: "relative",
-                    }}
-                  >
-                    <div
-                      style={{
-                        position: "relative",
-                        zIndex: 1,
-                        height: "100%",
-                        display: "flex",
-                      }}
-                    >
-                      <ExercisesRoutine />
-                    </div>
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        pointerEvents: "none",
-                      }}
-                    >
-                      {provided.placeholder}
-                    </div>
-                  </div>
-                )}
-              </Droppable>
+                </Grid>
+              </Grid>
             </Box>
           </>
         )}
@@ -311,23 +434,3 @@ export function ExercisesView({ isFavorite = false }: Props) {
     </DragDropContext>
   );
 }
-
-const GridLayout = React.forwardRef(({ children, ...props }: BoxProps, ref) => {
-  return (
-    <Box
-      ref={ref}
-      rowGap={3}
-      display="grid"
-      columnGap={2.5}
-      gridTemplateColumns={{
-        xs: "repeat(2, 1fr)",
-        sm: "repeat(3, 1fr)",
-      }}
-      {...props}
-    >
-      {children}
-    </Box>
-  );
-});
-
-GridLayout.displayName = "GridLayout";

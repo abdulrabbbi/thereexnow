@@ -729,7 +729,7 @@ export function useGetTranslatedShoppingCart(
   const { currentLang } = useLocales();
 
   const { data, isLoading } = useQuery({
-    enabled: !!authenticated,
+    enabled: !!authenticated && !!userData?.id,
     queryKey: [
       "shoppingCart_getShoppingCarts",
       "translatedTo",

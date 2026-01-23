@@ -43,6 +43,7 @@ export function ShopCard({ data, sx, ...other }: ProductItemProps) {
       sx={{
         p: 1.5,
         display: "flex",
+        minWidth: 0,
         minHeight: 109,
         position: "relative",
         alignItems: "stretch",
@@ -66,6 +67,7 @@ export function ShopCard({ data, sx, ...other }: ProductItemProps) {
       <Box
         sx={{
           flexGrow: 1,
+          minWidth: 0,
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
@@ -78,6 +80,7 @@ export function ShopCard({ data, sx, ...other }: ProductItemProps) {
           component={RouterLink}
           href={getProductRoute(data.productId)}
           sx={{
+            minWidth: 0,
             fontWeight: "fontWeightMedium",
             textDecorationLine: "none",
             "&:hover": { textDecorationLine: "underline" },
@@ -92,6 +95,8 @@ export function ShopCard({ data, sx, ...other }: ProductItemProps) {
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1,
           }}
         >
           <Typography variant="subtitle2">

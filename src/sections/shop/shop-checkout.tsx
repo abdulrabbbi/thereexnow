@@ -14,7 +14,7 @@ export function ShopCheckout() {
   const { shoppingCartData } = useShop();
 
   return (
-    <Stack spacing={2} sx={{ pb: 2, width: 420, minWidth: 420 }}>
+    <Stack spacing={2} sx={{ pb: 2, width: 1, minWidth: 0, height: 1 }}>
       <Stack
         flex={1}
         spacing={1.5}

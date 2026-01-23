@@ -24,9 +24,15 @@ type Props = {
   sx?: SxProps<Theme>;
   data: Array<Categories>;
   source?: "exercises" | "favorites" | "shop";
+  onItemClick?: () => void;
 };
 
-export function ExercisesNav({ data, source = "exercises" }: Props) {
+export function ExercisesNav({
+  data,
+  source = "exercises",
+  sx,
+  onItemClick,
+}: Props) {
   const NAV_ITEMS = useMemo(() => {
     const items: Array<NavItemBaseProps> = data?.map((cat) => ({
       title: cat.name ?? "-",
@@ -42,12 +48,17 @@ export function ExercisesNav({ data, source = "exercises" }: Props) {
     }));
 
     return items;
-  }, [data]);
+  }, [data, source]);
 
   return (
-    <Stack sx={{ py: 2, borderRadius: 1, bgcolor: "secondary.light" }}>
+    <Stack
+      sx={[
+        { py: 2, borderRadius: 1, bgcolor: "secondary.light" },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
+    >
       {NAV_ITEMS.map((list) => (
-        <CategoryNavList key={list.title} data={list} />
+        <CategoryNavList key={list.title} data={list} onItemClick={onItemClick} />
       ))}
     </Stack>
   );
@@ -55,14 +66,16 @@ export function ExercisesNav({ data, source = "exercises" }: Props) {
 
 type CategoryNavListProps = {
   data: NavItemBaseProps;
+  onItemClick?: () => void;
 };
 
-function CategoryNavList({ data }: CategoryNavListProps) {
+function CategoryNavList({ data, onItemClick }: CategoryNavListProps) {
   const itemParams = getParams(data.path) as UrlQueryParams;
 
   const searchParams = useSearchParams();
 
-  let activeParent = searchParams.get("categoryId") == itemParams.categoryId;
+  const activeParent =
+    searchParams?.get("categoryId") === itemParams.categoryId;
 
   return (
     <>
@@ -70,11 +83,19 @@ function CategoryNavList({ data }: CategoryNavListProps) {
         color="white"
         component={Link}
         href={data.path}
-        sx={{ pl: 3, pr: 2, mb: 0.5, height: 44, color: "white" }}
+        onClick={onItemClick}
+        sx={{ pl: 3, pr: 2, mb: 0.5, height: 44, width: 1, color: "white" }}
       >
         <Typography
           textAlign="left"
-          sx={{ width: 1, fontWeight: 700, fontSize:"22px" }}
+          sx={{
+            width: 1,
+            fontWeight: 700,
+            fontSize: "22px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
         >
           {data.title}
         </Typography>
@@ -92,7 +113,7 @@ function CategoryNavList({ data }: CategoryNavListProps) {
       {!!data.children && (
         <Collapse in={activeParent} unmountOnExit sx={{ px: 2 }}>
           {data.children.map((list: { title: string; path: string }) => (
-            <NavSubList key={list.title} data={list} />
+            <NavSubList key={list.title} data={list} onItemClick={onItemClick} />
           ))}
         </Collapse>
       )}
@@ -100,19 +121,26 @@ function CategoryNavList({ data }: CategoryNavListProps) {
   );
 }
 
-function NavSubList({ data }: { data: { title: string; path: string } }) {
+function NavSubList({
+  data,
+  onItemClick,
+}: {
+  data: { title: string; path: string };
+  onItemClick?: () => void;
+}) {
   const itemParams = getParams(data.path) as UrlQueryParams;
 
   const searchParams = useSearchParams();
 
-  let activeChild =
-    searchParams.get("subCategoryId") == itemParams.subCategoryId;
+  const activeChild =
+    searchParams?.get("subCategoryId") === itemParams.subCategoryId;
 
   return (
     <ButtonBase
       color="white"
       component={Link}
       href={data.path}
+      onClick={onItemClick}
       sx={{
         pl: 3,
         pr: 2,
@@ -126,7 +154,14 @@ function NavSubList({ data }: { data: { title: string; path: string } }) {
       <Typography
         textAlign="left"
         variant="body2"
-        sx={{ width: 1, fontWeight: 400, fontSize:'16px' }}
+        sx={{
+          width: 1,
+          fontWeight: 400,
+          fontSize: "16px",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
       >
         {data.title}
       </Typography>

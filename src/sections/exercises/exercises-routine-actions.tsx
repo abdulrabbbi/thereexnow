@@ -5,9 +5,8 @@ import useLocales from "@/hooks/use-locales";
 import { useUser } from "@/hooks/use-user";
 import { RouterLink } from "@/routes/components";
 import { getBoardDetailsRoute } from "@/routes/paths";
-import { Button, Stack } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { SaveRoutineModal } from "../board/save-routine";
-import * as HomeConfig from "./home-config";
 import { SaveNoteDialog } from "./save-note-dialog";
 
 export function ExercisesRoutineActions() {
@@ -38,11 +37,18 @@ export function ExercisesRoutineActions() {
 
   return (
     <>
-      <Stack
-        spacing={2}
-        direction="row"
-        alignItems="center"
-        sx={{ width: HomeConfig.ROUTINE_WIDTH }}
+      <Box
+        sx={{
+          minWidth: 0,
+          width: 1,
+          display: "grid",
+          gap: 2,
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, minmax(0, 1fr))",
+            md: "repeat(3, minmax(0, 1fr))",
+          },
+        }}
       >
         <Button
           fullWidth
@@ -51,6 +57,7 @@ export function ExercisesRoutineActions() {
           variant="outlined"
           onClick={onAddNote}
           disabled={disabled}
+          sx={{ minWidth: 0 }}
         >
           {t("ADD_NOTE")}
         </Button>
@@ -61,8 +68,8 @@ export function ExercisesRoutineActions() {
           color="inherit"
           variant="outlined"
           disabled={disabled}
-          sx={{ minWidth: 160 }}
           onClick={onSaveRoutine}
+          sx={{ minWidth: 0 }}
         >
           {t("SAVE_AZ_A_ROUTINE")}
         </Button>
@@ -75,11 +82,11 @@ export function ExercisesRoutineActions() {
           disabled={disabled}
           LinkComponent={RouterLink}
           href={getBoardDetailsRoute()}
-          sx={{ textAlign: "center" }}
+          sx={{ textAlign: "center", minWidth: 0 }}
         >
           {t("SEE_DETAILS")}
         </Button>
-      </Stack>
+      </Box>
 
       <SaveNoteDialog
         open={addNoteDialog.value}

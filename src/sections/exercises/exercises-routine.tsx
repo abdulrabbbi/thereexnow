@@ -27,7 +27,6 @@ import { BoardCard } from "../board/board-card";
 import { ShareButton } from "../common/share/share-button";
 import { EquipmentDialog } from "./equipment-dialog";
 import { useEffect, useState } from "react";
-import { useTranslate } from "@/hooks/use-translate";
 import { useGetTranslatedExercises } from "@/hooks/helpers/translated-hooks";
 import useSimpleTranslate from "@/hooks/use-simple-translate";
 
@@ -64,7 +63,7 @@ export function ExercisesRoutine() {
   ) as Array<SimplifiedExercise>;
 
   return (
-    <Stack spacing={2} sx={{ pb: 2, width: 420, minWidth: 420 }}>
+    <Stack spacing={2} sx={{ pb: 2, width: 1, minWidth: 0 }}>
       <Typography>* {t("DRAG_AND_DROP_TO_ADD_EXERSICE")}</Typography>
       <Stack
         flex={1}

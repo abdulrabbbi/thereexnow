@@ -1,20 +1,20 @@
 import { Box, BoxProps } from "@mui/material";
-import * as HomeConfig from "./home-config";
 
-export function ExercisesMainSection({ children, ...rest }: BoxProps) {
+export function ExercisesMainSection({ children, sx, ...rest }: BoxProps) {
   return (
     <Box
       component="main"
-      sx={{
-        px: 3,
-        flexGrow: 1,
-        display: "flex",
-        flexDirection: "column",
-        maxWidth: `calc(100% - ${HomeConfig.SIDE_BARS}px)`,
-        height: `calc(100vh - ${HomeConfig.HEADERS_HEIGHT}px)`,
-        maxHeight: `calc(100vh - ${HomeConfig.HEADERS_HEIGHT}px)`,
-        ...rest,
-      }}
+      sx={[
+        {
+          flexGrow: 1,
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          px: { xs: 0, md: 3 },
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
+      {...rest}
     >
       {children}
     </Box>
