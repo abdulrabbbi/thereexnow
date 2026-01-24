@@ -12,7 +12,7 @@ import {
 import { useSignIn } from "@/hooks/helpers/user";
 import { useAuth } from "@/hooks/use-auth";
 import useLocales from "@/hooks/use-locales";
-import { useSearchParams } from "@/routes/hooks";
+import { requestSkipBackendSignInOnce } from "@/providers/auth-provider/skip-backend-signin";
 import { getResponseError } from "@/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { InputAdornment, Stack } from "@mui/material";
@@ -36,10 +36,7 @@ const defaultValues = {
 export default function SignInView() {
   const { t } = useLocales();
   const { onSignIn } = useSignIn();
-  const searchParams = useSearchParams();
   const { signInWithPassword } = useAuth();
-
-  const returnTo = searchParams.get("returnTo");
 
   const methods = useForm({
     resolver: yupResolver(SignInSchema),
@@ -53,6 +50,8 @@ export default function SignInView() {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      requestSkipBackendSignInOnce();
+
       const firebaseUser = await signInWithPassword(data);
 
       if (firebaseUser) {
@@ -68,7 +67,7 @@ export default function SignInView() {
         if (res.user_getEmailVerified?.status.code === 1) {
           const response = res.user_getEmailVerified.result;
 
-          if (response?.verifiedInDatabase && response?.verifiedInDatabase) {
+          if (response?.verifiedInFirebase && response?.verifiedInDatabase) {
             await onSignIn(token);
           } else {
             return toast.info("Email not verified!");
@@ -86,6 +85,7 @@ export default function SignInView() {
         name="email"
         label={t("EMAIL_ADDRESS")}
         placeholder="example@gmail.com"
+        helperText=" "
         slotProps={{
           input: {
             startAdornment: (
@@ -101,6 +101,7 @@ export default function SignInView() {
         name="password"
         label={t("PASSWORD")}
         placeholder="123456789"
+        helperText=" "
         slotProps={{
           input: {
             startAdornment: (
@@ -114,7 +115,14 @@ export default function SignInView() {
 
       <ForgotPasswordSection />
 
-      <Button fullWidth type="submit" loading={isSubmitting}>
+      <Button
+        fullWidth
+        type="submit"
+        size="large"
+        loading={isSubmitting}
+        disabled={isSubmitting}
+        sx={{ height: 48 }}
+      >
         {t("SIGN_IN")}
       </Button>
     </Stack>

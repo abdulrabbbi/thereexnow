@@ -13,11 +13,16 @@ import { useUserSignInMutation } from "@/hooks/helpers/user";
 import { useQueryClient } from "@tanstack/react-query";
 import * as FirebaseActions from "./actions";
 import { AuthContext } from "./context";
+import { consumeSkipBackendSignInRequest } from "./skip-backend-signin";
 import { AuthState } from "./types";
 
 export const firebaseApp = initializeApp(GLOBAL_CONFIG.firebase);
 
 export const AUTH = getAuth(firebaseApp);
+
+// Avoid duplicate backend sign-in calls (e.g. React StrictMode dev double-mount).
+let backendSignInInFlight: Promise<any> | null = null;
+let backendSignInInFlightUid: string | null = null;
 
 export default function ({ children }: PropsWithChildren) {
   const { state, setState } = useSetState<AuthState>({
@@ -26,34 +31,47 @@ export default function ({ children }: PropsWithChildren) {
   });
 
   const queryClient = useQueryClient();
-  const { signInMutation } = useUserSignInMutation();
+  const { signInMutationAsync } = useUserSignInMutation();
 
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(AUTH, async (user) => {
       if (user) {
+        // Auth pages run their own backend sign-in/sign-up flows; avoid duplicating it here.
+        if (consumeSkipBackendSignInRequest()) {
+          setState({ loading: false });
+          return;
+        }
+
         const token = await user.getIdToken();
 
         if (token) {
           setHeader(token);
           saveCookie(ACCESS_TOKEN_KEY, token);
 
-          signInMutation(
-            {},
-            {
-              onSuccess: (res) => {
-                if (res.user_signIn?.status.code === 1) {
-                  setState({ user: user, loading: false });
-
-                  queryClient.invalidateQueries({
-                    queryKey: ["user_getCurrentUser"],
-                  });
-                } else {
-                  setState({ user: null, loading: false });
-                }
-              },
+          try {
+            if (!backendSignInInFlight || backendSignInInFlightUid !== user.uid) {
+              backendSignInInFlightUid = user.uid;
+              backendSignInInFlight = signInMutationAsync({}).finally(() => {
+                backendSignInInFlight = null;
+                backendSignInInFlightUid = null;
+              });
             }
-          );
+
+            const res = await backendSignInInFlight;
+
+            if (res.user_signIn?.status.code === 1) {
+              setState({ user: user, loading: false });
+
+              queryClient.invalidateQueries({
+                queryKey: ["user_getCurrentUser"],
+              });
+            } else {
+              setState({ user: null, loading: false });
+            }
+          } catch {
+            setState({ user: null, loading: false });
+          }
         } else {
           setState({ user: null, loading: false });
         }

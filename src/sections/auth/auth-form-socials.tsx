@@ -6,6 +6,7 @@ import IconButton from "@mui/material/IconButton";
 import { FacebookIcon, GoogleIcon } from "@/assets/icons";
 import { useSignIn, useSignUp } from "@/hooks/helpers/user";
 import { AUTH } from "@/providers/auth-provider/provider";
+import { requestSkipBackendSignInOnce } from "@/providers/auth-provider/skip-backend-signin";
 import { getResponseError } from "@/utils";
 import {
   FacebookAuthProvider,
@@ -35,6 +36,8 @@ export function FormSocials({ sx, isSignUp, ...other }: FormSocialsProps) {
     try {
       const selectedProvider =
         provider === "google" ? googleAuthProvider : facebookAuthProvider;
+
+      requestSkipBackendSignInOnce();
 
       const result = await signInWithPopup(AUTH, selectedProvider);
 

@@ -8,6 +8,9 @@ import { getSignInRoute } from "@/routes/paths";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import { useEffect } from "react";
 
+// Avoid double-confirm in React StrictMode (dev) where effects run twice on mount.
+const confirmedKeys = new Set<string>();
+
 export default function EmailVerifiedView() {
   const { t } = useLocales();
   const router = useRouter();
@@ -17,33 +20,33 @@ export default function EmailVerifiedView() {
 
   const { mutate, isPending, data: response } = useUser_ConfirmUserMutation();
 
-  const onConfirm = () => {
-    mutate({ confirmKey });
-  };
-
   useEffect(() => {
-    if (confirmKey) {
-      onConfirm();
-    }
-  }, []);
+    if (!confirmKey) return;
+    if (confirmedKeys.has(confirmKey)) return;
+
+    confirmedKeys.add(confirmKey);
+    mutate({ confirmKey });
+  }, [confirmKey, mutate]);
 
   const isChecking = isPending || !response?.user_confirmUser?.result;
 
   return (
     <Stack
+      spacing={4}
       alignItems="center"
-      justifyContent="space-evenly"
-      sx={{ width: 1, minHeight: "100vh", bgcolor: "#FAF0FA" }}
+      justifyContent="center"
+      sx={{ width: 1, minHeight: "100svh", bgcolor: "#FAF0FA", p: { xs: 2, sm: 3, md: 4 } }}
     >
       <Box
         component="img"
         src="/images/logo.png"
-        sx={{ width: 100, height: 100, alignSelf: "center" }}
+        sx={{ width: { xs: 88, sm: 100 }, height: { xs: 88, sm: 100 }, alignSelf: "center" }}
       />
 
       <Stack
-        p={4}
-        width={320}
+        p={{ xs: 3, sm: 4 }}
+        width={1}
+        maxWidth={{ xs: 420, sm: 520, md: 620 }}
         alignItems="center"
         sx={{ bgcolor: "white", borderRadius: 2 }}
       >
@@ -73,7 +76,9 @@ export default function EmailVerifiedView() {
       </Stack>
 
       <Button
-        sx={{ width: 320 }}
+        fullWidth
+        size="large"
+        sx={{ height: 48, maxWidth: { xs: 420, sm: 520, md: 620 } }}
         loading={isChecking}
         loadingIndicator="Verifying ..."
         onClick={() => router.replace(getSignInRoute())}

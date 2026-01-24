@@ -15,7 +15,7 @@ export function useUser(): UseUserReturn {
   const { authenticated } = useAuth();
 
   const { data, isLoading } = useUser_GetCurrentUserQuery(
-    {},
+    undefined,
     {
       staleTime: Infinity,
       refetchOnMount: false,
@@ -25,7 +25,10 @@ export function useUser(): UseUserReturn {
   );
 
   const { data: membershipData, isLoading: membershipLoading } =
-    useMembership_GetCurrentMembershipQuery({}, { enabled: !!authenticated });
+    useMembership_GetCurrentMembershipQuery(undefined, {
+      enabled: !!authenticated,
+      staleTime: 60 * 1000,
+    });
 
   const isPro: boolean = useMemo(
     () =>

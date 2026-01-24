@@ -13,8 +13,11 @@ export function Section({ sx }: SectionProps) {
       sx={{
         display: "none",
         flex: "1 1 auto",
+        minWidth: 0,
         [theme.breakpoints.up("md")]: {
-          display: "block",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         },
         ...sx,
       }}
@@ -23,7 +26,13 @@ export function Section({ sx }: SectionProps) {
         alt="Sign in"
         component="img"
         src={`/images/auth-bg.svg`}
-        sx={{ width: 1, mt: 7 }}
+        sx={{
+          width: 1,
+          height: "auto",
+          maxWidth: 560,
+          maxHeight: "80svh",
+          objectFit: "contain",
+        }}
       />
     </Box>
   );

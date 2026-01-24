@@ -57,7 +57,13 @@ export default function Layout({ children }: PropsWithChildren) {
 
   return (
     <AuthGuard>
-      <MiniNavLayout navItems={navItems}>{children}</MiniNavLayout>
+      <MiniNavLayout
+        navItems={navItems}
+        mobileMenuButtonLabel="Settings menu"
+        mobileMenuTitle="Settings"
+      >
+        {children}
+      </MiniNavLayout>
     </AuthGuard>
   );
 }

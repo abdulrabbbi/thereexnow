@@ -12,14 +12,13 @@ export function Main({ sx, children, ...other }: ContainerProps) {
     <Container
       component="main"
       sx={{
-        pt: 5,
-        pb: 5,
+        minHeight: "100svh",
+        p: { xs: 2, sm: 3, md: 4 },
         display: "flex",
-        alignItems: "flex-start",
+        flexDirection: { xs: "column", md: "row" },
+        alignItems: "center",
         justifyContent: "center",
-        [theme.breakpoints.up("md")]: {
-          gap: 10,
-        },
+        gap: { xs: 3, md: 10 },
         ...sx,
       }}
       {...other}
@@ -35,13 +34,13 @@ export function Content({ sx, children, ...other }: BoxProps) {
   return (
     <Box
       sx={{
-        py: 4,
-        px: 3,
+        p: { xs: 3, sm: 4, md: 5 },
         width: 1,
+        minWidth: 0,
         borderRadius: 2,
-        maxWidth: "380px",
+        maxWidth: { xs: 420, sm: 520, md: 620, lg: 720 },
         bgcolor: "background.paper",
-        boxShadow: { xs: "none", md: theme.customShadows.z24 },
+        boxShadow: { xs: "none", sm: theme.customShadows.z24 },
         ...sx,
       }}
       {...other}

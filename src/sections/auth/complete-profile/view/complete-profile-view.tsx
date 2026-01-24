@@ -31,6 +31,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useQueryClient } from "@tanstack/react-query";
+import type { CountryCode } from "libphonenumber-js";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -213,7 +214,12 @@ export default function CompleteProfileView({
             />
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              alignItems={{ xs: "stretch", sm: "center" }}
+              spacing={1}
+              sx={{ minWidth: 0 }}
+            >
               <Field.CountrySelect
                 fullWidth
                 name="country"
@@ -223,7 +229,7 @@ export default function CompleteProfileView({
 
               <Field.Phone
                 fullWidth
-                country={formValues.countryName}
+                country={formValues.countryName as CountryCode | undefined}
                 sx={{ flex: 1 }}
                 name="phoneNumber"
                 label={t("PHONE_NUMBER")}
@@ -233,7 +239,12 @@ export default function CompleteProfileView({
 
           {formValues.country === "United States" ? (
             <Grid size={{ xs: 12, md: 6 }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                alignItems={{ xs: "stretch", sm: "center" }}
+                spacing={1}
+                sx={{ minWidth: 0 }}
+              >
                 <Field.Text select fullWidth name="state" label={t("STATE")}>
                   {states.map((option) => (
                     <MenuItem key={option.value} value={option.value}>
@@ -249,17 +260,17 @@ export default function CompleteProfileView({
         </Grid>
         <Stack
           spacing={2}
-          direction={{ xs: "column", md: "row" }}
+          direction={{ xs: "column", sm: "row" }}
           sx={{
             mt: 5,
             width: 1,
-            justifyContent: "center",
-            alignItems: { xs: "stretch", md: "center" },
+            justifyContent: { xs: "stretch", sm: "flex-start" },
+            alignItems: { xs: "stretch", sm: "center" },
           }}
         >
           <Button
             type="submit"
-            sx={{ width: { xs: "100%", md: 280 } }}
+            sx={{ width: { xs: 1, sm: 240, md: 280 } }}
             loading={isUploading || isSubmitting || updateUserPending}
           >
             {t(initialValues ? "SAVE" : "SUBMIT")}
@@ -270,6 +281,7 @@ export default function CompleteProfileView({
               color="inherit"
               variant="outlined"
               onClick={deleteAccount.onTrue}
+              sx={{ width: { xs: 1, sm: 240, md: 280 } }}
             >
               {t("DELETE_ACCOUNT")}
             </Button>

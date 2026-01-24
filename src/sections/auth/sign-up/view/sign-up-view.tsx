@@ -6,6 +6,7 @@ import { Iconify } from "@/components/iconify";
 import { useSignUp } from "@/hooks/helpers/user";
 import { useAuth } from "@/hooks/use-auth";
 import useLocales from "@/hooks/use-locales";
+import { requestSkipBackendSignInOnce } from "@/providers/auth-provider/skip-backend-signin";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { InputAdornment, Stack } from "@mui/material";
 import Button from "@mui/material/Button";
@@ -42,6 +43,8 @@ export default function SignInView() {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      requestSkipBackendSignInOnce();
+
       const firebaseUser = await signUpWithEmailAndPassword(data);
 
       if (firebaseUser) {
@@ -60,6 +63,7 @@ export default function SignInView() {
         name="email"
         label={t("EMAIL_ADDRESS")}
         placeholder="example@gmail.com"
+        helperText=" "
         slotProps={{
           input: {
             startAdornment: (
@@ -75,6 +79,7 @@ export default function SignInView() {
         name="password"
         label={t("PASSWORD")}
         placeholder="123456789"
+        helperText=" "
         slotProps={{
           input: {
             startAdornment: (
@@ -90,6 +95,7 @@ export default function SignInView() {
         name="confirmPassword"
         placeholder="123456789"
         label={t("CONFIRM_PASSWORD")}
+        helperText=" "
         slotProps={{
           input: {
             startAdornment: (
@@ -101,7 +107,14 @@ export default function SignInView() {
         }}
       />
 
-      <Button fullWidth type="submit" loading={isSubmitting}>
+      <Button
+        fullWidth
+        type="submit"
+        size="large"
+        loading={isSubmitting}
+        disabled={isSubmitting}
+        sx={{ height: 48 }}
+      >
         {t("SIGN_UP2")}
       </Button>
     </Stack>

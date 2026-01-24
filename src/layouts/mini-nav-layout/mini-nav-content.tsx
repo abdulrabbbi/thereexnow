@@ -5,8 +5,10 @@ export function MiniNavContent({ children, sx, ...other }: BoxProps) {
     <Box
       component="main"
       sx={{
-        py: 6,
+        py: { xs: 3, md: 6 },
         flexGrow: 1,
+        minWidth: 0,
+        overflowX: "hidden",
         overflowY: "auto",
         scrollbarWidth: "none", // Hide scrollbar for Firefox
         msOverflowStyle: "none", // Hide scrollbar for IE and Edge (legacy)

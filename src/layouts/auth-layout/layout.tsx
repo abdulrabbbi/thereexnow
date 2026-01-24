@@ -16,7 +16,7 @@ export type AuthLayoutProps = {
 
 export function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <Box sx={{ height: "100%", minHeight: "100vh", bgcolor: "#eafcff" }}>
+    <Box sx={{ minHeight: "100svh", bgcolor: "#eafcff" }}>
       <Main>
         <Content>{children}</Content>
         <Section />

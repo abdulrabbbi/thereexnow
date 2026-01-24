@@ -30,7 +30,7 @@ export const useUserSignInMutation = <TError = unknown, TContext = unknown>(
     TContext
   >
 ) => {
-  const { mutate, isPending } = useMutation<
+  const { mutate, mutateAsync, isPending } = useMutation<
     User_SignInQuery,
     TError,
     User_SignInQueryVariables,
@@ -46,6 +46,7 @@ export const useUserSignInMutation = <TError = unknown, TContext = unknown>(
 
   return {
     signInMutation: mutate,
+    signInMutationAsync: mutateAsync,
     signInLoading: isPending,
   };
 };
@@ -54,49 +55,60 @@ export function useSignIn() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
-  const { signInMutation } = useUserSignInMutation();
+  const { signInMutationAsync, signInLoading } = useUserSignInMutation();
   const { reloadUser } = useAuth();
 
-  const returnTo = searchParams.get("returnTo");
+  const returnTo = searchParams?.get("returnTo");
 
-  const onSignIn = async (token: string, onError?: () => void) => {
+  const onSignIn = async (
+    token: string,
+    onError?: () => void | Promise<void>
+  ) => {
     setHeader(token);
     saveCookie(ACCESS_TOKEN_KEY, token);
 
-    signInMutation(
-      {},
-      {
-        onSuccess: async (res) => {
-          if (res.user_signIn?.status.code === 1) {
-            const user = res.user_signIn.result;
+    let handledError = false;
 
-            saveCookie(ACCESS_TOKEN_KEY, token);
+    try {
+      const res = await signInMutationAsync({});
 
-            queryClient.invalidateQueries({
-              queryKey: ["user_getCurrentUser"],
-            });
+      if (res.user_signIn?.status.code === 1) {
+        const user = res.user_signIn.result;
 
-            await reloadUser()
+        saveCookie(ACCESS_TOKEN_KEY, token);
 
-            router.replace(
-              user?.fullName ? (returnTo ?? "/") : getCompleteProfileRoute()
-            );
-          } else {
-            clearCookie(ACCESS_TOKEN_KEY);
-            return onError
-              ? onError()
-              : toast.warning(res?.user_signIn?.status.value);
-          }
-        },
-        onError: () => {
-          onError?.();
-        },
+        queryClient.invalidateQueries({
+          queryKey: ["user_getCurrentUser"],
+        });
+
+        await reloadUser();
+
+        router.replace(
+          user?.fullName ? (returnTo ?? "/") : getCompleteProfileRoute()
+        );
+
+        return;
       }
-    );
+
+      clearCookie(ACCESS_TOKEN_KEY);
+
+      if (onError) {
+        handledError = true;
+        await onError();
+      } else {
+        toast.warning(res?.user_signIn?.status.value);
+      }
+    } catch {
+      clearCookie(ACCESS_TOKEN_KEY);
+      if (!handledError) {
+        await onError?.();
+      }
+    }
   };
 
   return {
     onSignIn,
+    signInLoading,
   };
 }
 
@@ -108,8 +120,9 @@ type UseSignUpParams = {
 
 export function useSignUp() {
   const router = useRouter();
-  const { mutate: signUpMutation } = useUser_SignUpMutation();
-   const { reloadUser } = useAuth();
+  const { mutateAsync: signUpMutationAsync, isPending: signUpLoading } =
+    useUser_SignUpMutation();
+  const { reloadUser } = useAuth();
 
   const onSignUp = async ({
     token,
@@ -119,37 +132,34 @@ export function useSignUp() {
     setHeader(token);
     saveCookie(ACCESS_TOKEN_KEY, token);
 
-    signUpMutation(
-      {
-        data: {
-          email,
-          isSocial,
-          language: "English",
-          userType: UserType.NormalUser,
-          confirmUrl: getEmailVerifyRoute(),
-        },
+    const res = await signUpMutationAsync({
+      data: {
+        email,
+        isSocial,
+        language: "English",
+        userType: UserType.NormalUser,
+        confirmUrl: getEmailVerifyRoute(),
       },
-      {
-        onSuccess: async (res) => {
-          if (res.user_signUp?.status.code === 1) {
-            if (isSocial) {
-              saveCookie(ACCESS_TOKEN_KEY, token);
-              await reloadUser()
-              router.push(getCompleteProfileRoute());
-            } else {
-              // Verification email has been sent to provided email
-              toast.info("Please check your email");
-              router.push(getSignInRoute());
-            }
-          } else {
-            return toast.warning(res?.user_signUp?.status.value);
-          }
-        },
+    });
+
+    if (res.user_signUp?.status.code === 1) {
+      if (isSocial) {
+        saveCookie(ACCESS_TOKEN_KEY, token);
+        await reloadUser();
+        router.push(getCompleteProfileRoute());
+      } else {
+        // Verification email has been sent to provided email
+        toast.info("Please check your email");
+        router.push(getSignInRoute());
       }
-    );
+      return;
+    }
+
+    toast.warning(res?.user_signUp?.status.value);
   };
 
   return {
     onSignUp,
+    signUpLoading,
   };
 }
