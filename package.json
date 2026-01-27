@@ -5,12 +5,12 @@
   "scripts": {
     "lint": "next lint",
     "start": "next start",
-    "dev": "node prebuild && next dev",
+    "dev": "node prebuild && node scripts/ensure-graphql-generated.js && next dev",
     "generate": "npx graphql-codegen --config codegen.ts",
     "generate:local": "npx graphql-codegen --config codegen-local.ts",
-    "build": "node prebuild -prd & npm run generate && next build",
-    "build:dev": "node prebuild -dev & npm run generate && next build",
-    "build:prd": "node prebuild -prd & npm run generate && next build"
+    "build": "node prebuild -prd && npm run generate && next build",
+    "build:dev": "node prebuild -dev && npm run generate && next build",
+    "build:prd": "node prebuild -prd && npm run generate && next build"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
