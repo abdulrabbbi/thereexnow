@@ -71,7 +71,7 @@ export function useGetTranslatedExercises(props: useGetExercisesProps) {
   const {
     where,
     enabled,
-    page = 1,
+    page = 0,
     categoryId,
     keyword = "",
     subCategoryId,
@@ -79,16 +79,28 @@ export function useGetTranslatedExercises(props: useGetExercisesProps) {
     take,
   } = props;
 
+  const whereKey = where ? JSON.stringify(where) : "";
+  const resolvedTake = take || 9;
+
   const { data, isLoading, isFetching } = useQuery({
     enabled: enabled,
     placeholderData: (previousData) => previousData, // Use previous data as placeholder
-    queryKey: ["exercise_getExercises", props],
+    queryKey: [
+      "exercise_getExercises",
+      page,
+      resolvedTake,
+      keyword,
+      sort,
+      categoryId ?? null,
+      subCategoryId ?? null,
+      whereKey,
+    ],
     queryFn: async () => {
       const res = await fetcher<
         Exercise_GetExercisesQuery,
         Exercise_GetExercisesQueryVariables
       >(Exercise_GetExercisesDocument, {
-        take: take || 9,
+        take: resolvedTake,
         skip: page * 9,
         where: {
           ...where,
@@ -145,7 +157,7 @@ export function useGetTranslatedExercises(props: useGetExercisesProps) {
 export function useGetTranslatedFavoriteExercises(props: useGetExercisesProps) {
   const {
     enabled,
-    page = 1,
+    page = 0,
     categoryId,
     keyword = "",
     subCategoryId,
@@ -155,7 +167,14 @@ export function useGetTranslatedFavoriteExercises(props: useGetExercisesProps) {
   const { data, isLoading, isFetching } = useQuery({
     enabled: enabled,
     placeholderData: (previousData) => previousData, // Use previous data as placeholder
-    queryKey: ["favoriteExercise_getFavoriteExercises", props],
+    queryKey: [
+      "favoriteExercise_getFavoriteExercises",
+      page,
+      keyword,
+      sort,
+      categoryId ?? null,
+      subCategoryId ?? null,
+    ],
     queryFn: async () => {
       const res = await fetcher<
         FavoriteExercise_GetFavoriteExercisesQuery,

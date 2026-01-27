@@ -20,9 +20,10 @@ import { toast } from "sonner";
 type Props = {
   open: boolean;
   onClose: VoidFunction;
+  onFlowEnd?: VoidFunction;
 };
 
-export function SaveRoutineModal({ open, onClose }: Props) {
+export function SaveRoutineModal({ open, onClose, onFlowEnd }: Props) {
   const { t } = useLocales();
   const newRoutine = useBoolean();
   const existingRoutine = useBoolean();
@@ -31,11 +32,16 @@ export function SaveRoutineModal({ open, onClose }: Props) {
     take: 999,
   });
 
+  const handleCloseConfirm = () => {
+    onClose();
+    onFlowEnd?.();
+  };
+
   return (
     <>
       <ConfirmDialog
         open={open}
-        onClose={onClose}
+        onClose={handleCloseConfirm}
         title="Save as routine"
         cancelProps={{ color: "inherit", fullWidth: true, size: "medium" }}
         content={
@@ -69,10 +75,19 @@ export function SaveRoutineModal({ open, onClose }: Props) {
       <SaveExistingRoutine
         routines={routinesData}
         open={existingRoutine.value}
-        onClose={existingRoutine.onFalse}
+        onClose={() => {
+          existingRoutine.onFalse();
+          onFlowEnd?.();
+        }}
       />
 
-      <SaveNewRoutine open={newRoutine.value} onClose={newRoutine.onFalse} />
+      <SaveNewRoutine
+        open={newRoutine.value}
+        onClose={() => {
+          newRoutine.onFalse();
+          onFlowEnd?.();
+        }}
+      />
     </>
   );
 }

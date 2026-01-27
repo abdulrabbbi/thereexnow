@@ -9,7 +9,11 @@ import { Box, Button } from "@mui/material";
 import { SaveRoutineModal } from "../board/save-routine";
 import { SaveNoteDialog } from "./save-note-dialog";
 
-export function ExercisesRoutineActions() {
+type Props = {
+  onActionCompleted?: VoidFunction;
+};
+
+export function ExercisesRoutineActions({ onActionCompleted }: Props) {
   const board = useBoard();
   const { t } = useLocales();
   const { userData } = useUser();
@@ -33,6 +37,16 @@ export function ExercisesRoutineActions() {
     }
 
     saveRoutine.onTrue();
+  };
+
+  const handleCloseNoteDialog = () => {
+    addNoteDialog.onFalse();
+    onActionCompleted?.();
+  };
+
+  const handleCloseSaveRoutineFlow = () => {
+    saveRoutine.onFalse();
+    onActionCompleted?.();
   };
 
   return (
@@ -82,6 +96,7 @@ export function ExercisesRoutineActions() {
           disabled={disabled}
           LinkComponent={RouterLink}
           href={getBoardDetailsRoute()}
+          onClick={onActionCompleted}
           sx={{ textAlign: "center", minWidth: 0 }}
         >
           {t("SEE_DETAILS")}
@@ -90,12 +105,13 @@ export function ExercisesRoutineActions() {
 
       <SaveNoteDialog
         open={addNoteDialog.value}
-        onClose={addNoteDialog.onFalse}
+        onClose={handleCloseNoteDialog}
       />
 
       <SaveRoutineModal
         open={saveRoutine.value}
         onClose={saveRoutine.onFalse}
+        onFlowEnd={handleCloseSaveRoutineFlow}
       />
     </>
   );

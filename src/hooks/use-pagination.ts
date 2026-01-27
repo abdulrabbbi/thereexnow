@@ -6,7 +6,7 @@ export function usePagination() {
 
   const onChangePerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setPage(0);
+      setPage(1);
       setPerPage(parseInt(event.target.value, 10));
     },
     []
@@ -17,7 +17,7 @@ export function usePagination() {
   }, []);
 
   const onResetPage = useCallback(() => {
-    setPage(0);
+    setPage(1);
   }, []);
 
   return {
