@@ -24,6 +24,9 @@ export function ExerciseGallery({ id, data, onMirrorImage }: Props) {
   );
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [imageFitMode, setImageFitMode] = useState<"contain" | "cover">(
+    "contain"
+  );
 
   useEffect(() => {
     if (!mediaItems.length) {
@@ -35,8 +38,16 @@ export function ExerciseGallery({ id, data, onMirrorImage }: Props) {
     }
   }, [activeIndex, mediaItems.length]);
 
+  useEffect(() => {
+    setImageFitMode("contain");
+  }, [activeIndex]);
+
   const handleThumbClick = useCallback((index: number) => {
     setActiveIndex(index);
+  }, []);
+
+  const handleToggleImageFit = useCallback(() => {
+    setImageFitMode((prev) => (prev === "contain" ? "cover" : "contain"));
   }, []);
 
   if (!mediaItems.length) {
@@ -45,6 +56,14 @@ export function ExerciseGallery({ id, data, onMirrorImage }: Props) {
 
   const selected = mediaItems[activeIndex] ?? mediaItems[0];
   const selectedTransform = selected.mirror ? "scaleX(-1)" : undefined;
+  const previewAspectRatio =
+    selected.type === "video"
+      ? { xs: "16 / 9", sm: "16 / 9", md: "16 / 9" }
+      : { xs: "4 / 3", sm: "16 / 9", md: "16 / 9" };
+  const imageInset =
+    imageFitMode === "cover"
+      ? { xs: 0.5, sm: 0.75, md: 1 }
+      : { xs: 1, sm: 1.25, md: 1.5 };
 
   return (
     <>
@@ -53,37 +72,67 @@ export function ExerciseGallery({ id, data, onMirrorImage }: Props) {
           sx={{
             width: 1,
             maxWidth: "100%",
-            aspectRatio: { xs: "16 / 9", sm: "16 / 9" },
+            aspectRatio: previewAspectRatio,
             borderRadius: 2,
             overflow: "hidden",
             position: "relative",
-            bgcolor: "grey.100",
+            bgcolor: "grey.50",
             border: "0.5px solid #EAEAEA",
           }}
         >
           {selected.type === "image" ? (
-            <Image
-              visibleByDefault
-              disablePlaceholder
-              alt={selected.fileName ?? `exercise-media-${activeIndex}`}
-              src={selected.src}
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={handleToggleImageFit}
+              sx={{
+                top: 8,
+                right: 8,
+                zIndex: 2,
+                minWidth: 0,
+                px: 1.25,
+                py: 0.25,
+                position: "absolute",
+                bgcolor: "background.paper",
+              }}
+            >
+              {imageFitMode === "contain" ? "Fill" : "Fit"}
+            </Button>
+          ) : null}
+
+          {selected.type === "image" ? (
+            <Box
               sx={{
                 position: "absolute",
-                inset: 0,
-                width: 1,
-                height: 1,
-                display: "block",
+                inset: imageInset,
+                borderRadius: 1.5,
+                overflow: "hidden",
+                bgcolor: "grey.100",
               }}
-              slotProps={{
-                img: {
-                  style: {
-                    objectFit: "contain",
-                    backgroundColor: "#000",
-                    transform: selectedTransform,
+            >
+              <Image
+                visibleByDefault
+                disablePlaceholder
+                alt={selected.fileName ?? `exercise-media-${activeIndex}`}
+                src={selected.src}
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  width: 1,
+                  height: 1,
+                  display: "block",
+                }}
+                slotProps={{
+                  img: {
+                    style: {
+                      objectFit: imageFitMode,
+                      objectPosition: "center",
+                      transform: selectedTransform,
+                    },
                   },
-                },
-              }}
-            />
+                }}
+              />
+            </Box>
           ) : (
             <Box
               sx={{
@@ -108,7 +157,15 @@ export function ExerciseGallery({ id, data, onMirrorImage }: Props) {
         <Stack
           direction="row"
           spacing={1}
-          sx={{ mt: 1, overflowX: "auto", pb: 0.5, width: 1, minWidth: 0 }}
+          sx={{
+            mt: 1,
+            pb: 0.5,
+            width: 1,
+            minWidth: 0,
+            overflowX: "auto",
+            scrollSnapType: "x mandatory",
+            WebkitOverflowScrolling: "touch",
+          }}
         >
           {mediaItems.map((item, index) => {
             const thumbTransform = item.mirror ? "scaleX(-1)" : undefined;
@@ -118,15 +175,20 @@ export function ExerciseGallery({ id, data, onMirrorImage }: Props) {
                 key={item.key}
                 onClick={() => handleThumbClick(index)}
                 sx={(theme) => ({
-                  width: { xs: 72, sm: 84, md: 88 },
-                  height: { xs: 72, sm: 84, md: 88 },
+                  width: { xs: 64, sm: 72, md: 84 },
+                  height: { xs: 64, sm: 72, md: 84 },
                   flexShrink: 0,
                   borderRadius: 1.25,
                   overflow: "hidden",
-                  border: `1px solid ${theme.palette.divider}`,
+                  scrollSnapAlign: "start",
+                  border: `2px solid ${
+                    index === activeIndex
+                      ? theme.palette.primary.main
+                      : theme.palette.divider
+                  }`,
                   boxShadow:
                     index === activeIndex
-                      ? `0 0 0 2px ${theme.palette.primary.main}`
+                      ? `0 0 0 1px ${theme.palette.primary.main}`
                       : "none",
                   bgcolor: "grey.100",
                 })}
