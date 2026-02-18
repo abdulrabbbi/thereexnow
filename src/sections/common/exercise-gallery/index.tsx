@@ -7,7 +7,9 @@ import {
 import { Iconify } from "@/components/iconify";
 import { MediaType } from "@/types";
 import { getAssetsUrl } from "@/utils";
-import { Box, Button, Stack } from "@mui/material";
+import { Box, Button, Stack, useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import { useMemo } from "react";
 
 type Props = {
   id?: number;
@@ -16,34 +18,57 @@ type Props = {
 };
 
 export function ExerciseGallery({ id, data, onMirrorImage }: Props) {
-  const carousel = useCarousel({
-    thumbs: {
-      axis: "y",
-      slidesToShow: 3.5,
-    },
-  });
+  const theme = useTheme();
+  const smUp = useMediaQuery(theme.breakpoints.up("sm"));
+  const carouselOptions = useMemo(
+    () => ({
+      thumbs: {
+        axis: (smUp ? "y" : "x") as "x" | "y",
+        slidesToShow: smUp ? 3.5 : 4.5,
+      },
+    }),
+    [smUp]
+  );
+
+  const carousel = useCarousel(carouselOptions);
+
+  if (!data?.length) {
+    return null;
+  }
 
   const index = carousel.dots.selectedIndex;
-  const selected = data[index];
+  const selected = data[index] ?? data[0];
 
   return (
     <>
-      <Stack direction="row">
-        <Carousel carousel={carousel} sx={{ borderRadius: 2 }}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+        <Carousel carousel={carousel} sx={{ borderRadius: 2, flex: 1 }}>
           {data.map((item, index) => (
-            <Box key={index} sx={{ position: "relative" }}>
+            <Box
+              key={index}
+              sx={{
+                width: 1,
+                minWidth: 0,
+                aspectRatio: "16 / 9",
+                position: "relative",
+                borderRadius: 2,
+                overflow: "hidden",
+                bgcolor: "grey.100",
+                border: "0.5px solid #EAEAEA",
+              }}
+            >
               <Box
-                controls
+                {...(item.type === "video" ? { controls: true } : {})}
                 alt={item.fileName}
                 src={getAssetsUrl(item.url)}
                 component={item.type === "image" ? "img" : "video"}
                 sx={{
-                  maxHeight: 360,
-                  borderRadius: 1,
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
                   bgcolor: "black",
                   objectFit: "contain",
-                  border: `0.5px solid #EAEAEA`,
-                  aspectRatio: { xs: "3/4", sm: "16/10" },
                   ...(item.mirror && { transform: "scaleX(-1)" }),
                 }}
               />
@@ -56,10 +81,16 @@ export function ExerciseGallery({ id, data, onMirrorImage }: Props) {
             p: 0.5,
             borderRadius: 1.25,
             bgcolor: "background.paper",
+            width: { xs: 1, sm: "auto" },
           }}
         >
           <CarouselThumbs
-            sx={{ height: 360 }}
+            sx={{
+              width: { xs: 1, sm: "auto" },
+              height: { xs: "auto", sm: "100%" },
+              maxHeight: { sm: 400 },
+            }}
+            slotProps={{ disableMask: !smUp }}
             ref={carousel.thumbs.thumbsRef}
             options={carousel.options?.thumbs}
           >
@@ -72,8 +103,8 @@ export function ExerciseGallery({ id, data, onMirrorImage }: Props) {
                 selected={index === carousel.thumbs.selectedIndex}
                 onClick={() => carousel.thumbs.onClickThumb(index)}
                 sx={{
-                  width: 85,
-                  height: 85,
+                  width: { xs: 72, sm: 85 },
+                  height: { xs: 72, sm: 85 },
                   border: "1px solid grey",
                   ...(item.mirror && { transform: "scaleX(-1)" }),
                 }}
@@ -83,7 +114,7 @@ export function ExerciseGallery({ id, data, onMirrorImage }: Props) {
         </Box>
       </Stack>
 
-      {onMirrorImage && selected.type === "image" ? (
+      {onMirrorImage && typeof id === "number" && selected.type === "image" ? (
         <Stack alignItems="flex-end">
           <Button
             variant="soft"

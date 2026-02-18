@@ -1,7 +1,6 @@
 "use client";
 
-import useLocales from "@/hooks/use-locales";
-import { PerformType } from "@/hooks/use-mock-data";
+import { HoldType, PerformType } from "@/hooks/use-mock-data";
 import { ExerciseGallery } from "@/sections/common/exercise-gallery";
 import { ExerciseRepsHold } from "@/sections/common/exercise-reps-hold";
 import { ExerciseSetPerform } from "@/sections/common/exercise-set-perform";
@@ -9,7 +8,7 @@ import { ExerciseWorkout } from "@/sections/common/exercise-workout";
 import { ExerciseDetailsType, MediaType, SimplifiedExerciseDto } from "@/types";
 import { Box, Divider } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { useFieldArray, useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 
 type Props = {
   exerciseData: SimplifiedExerciseDto;
@@ -20,39 +19,68 @@ export function ExerciseDetailsForm({ exerciseData }: Props) {
 
   const methods = useFormContext<ExerciseDetailsType>();
 
-  const { watch, setValue, control } = methods;
+  const { setValue, control } = methods;
 
-  const formValues = watch();
-  const { update } = useFieldArray({
+  const [
+    workoutMove = [],
+    reps = 0,
+    hold = 0,
+    holdType = HoldType.Min,
+    setCount = 0,
+    perform = 0,
+    performType = PerformType.Day,
+  ] = useWatch({
     control,
-    name: "workoutMove",
-  });
+    name: [
+      "workoutMove",
+      "reps",
+      "hold",
+      "holdType",
+      "set",
+      "perform",
+      "performType",
+    ],
+  }) as [Array<string>, number, number, HoldType, number, number, PerformType];
+
+  const onWorkoutMoveChange = (index: number, value: string) => {
+    const currentMoves = methods.getValues("workoutMove") ?? [];
+    const nextMoves = [...currentMoves];
+
+    nextMoves[index] = value;
+
+    setValue("workoutMove", nextMoves, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
 
   return (
     <Box sx={{ py: 5, position: "relative" }}>
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 8 }}>
-          <ExerciseGallery
-            id={exercise?.id as number}
-            data={exercise?.otherMedia as Array<MediaType>}
-          />
+          <Box sx={{ width: 1, minWidth: 0 }}>
+            <ExerciseGallery
+              id={exercise?.id as number}
+              data={exercise?.otherMedia as Array<MediaType>}
+            />
+          </Box>
         </Grid>
 
         <Grid size={{ xs: 12, md: 4 }} sx={{ py: 1 }}>
           <ExerciseWorkout
             // onAdd={() => append("")}
             exerciseId={exercise?.id as number}
-            data={formValues?.workoutMove ?? []}
+            data={workoutMove}
             // onRemove={(args) => remove(args.index)}
-            onChange={(args) => update(args.index, args.value)}
+            onChange={(args) => onWorkoutMoveChange(args.index, args.value)}
           />
 
           <Divider sx={{ my: 2, borderStyle: "dashed" }} />
 
           <ExerciseRepsHold
-            reps={formValues.reps}
-            hold={formValues.hold}
-            holdType={formValues.holdType}
+            reps={reps}
+            hold={hold}
+            holdType={holdType}
             exerciseId={exercise?.id as number}
             onChange={(args) => setValue(args.field, args.value as any)}
           />
@@ -60,10 +88,10 @@ export function ExerciseDetailsForm({ exerciseData }: Props) {
           <Box sx={{ my: 3 }} />
 
           <ExerciseSetPerform
-            set={formValues?.set as number}
+            set={setCount}
             exerciseId={exercise?.id as number}
-            perform={formValues?.perform as number}
-            performType={formValues?.performType as PerformType}
+            perform={perform}
+            performType={performType}
             onChange={(args) => setValue(args.field, args.value as any)}
           />
         </Grid>

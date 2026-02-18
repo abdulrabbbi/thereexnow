@@ -7,7 +7,11 @@ const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
 export const ReactPlayerRoot = styled(ReactPlayer)({
   width: "100% !important",
   height: "100% !important",
+  "& > div": {
+    width: "100% !important",
+    height: "100% !important",
+  },
   "& video": {
-    objectFit: "cover",
+    objectFit: "contain",
   },
 });
