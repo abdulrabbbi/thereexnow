@@ -1,6 +1,6 @@
 export const ACCESS_TOKEN_KEY = "ACCESS_TOKEN_KEY";
 
-export const ACCEPT_TERMS_KEY = "ACCEPT_TERMS_KEY";
+export const ACCEPT_TERMS_KEY = "termsAccepted:v1";
 
 export const CHECKOUT_KEY = "CHECKOUT_KEY";
 

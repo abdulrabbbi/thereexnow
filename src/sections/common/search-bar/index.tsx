@@ -16,6 +16,7 @@ type Props = Omit<TextFieldProps, "value" | "onChange" | "slotProps"> & {
   value?: string;
   isLoading?: boolean;
   onChange: (value: string) => void;
+  onInputChange?: (value: string) => void;
   slotProps?: {
     root?: StackProps;
     button?: ButtonProps;
@@ -27,6 +28,7 @@ export function SearchBar({
   label,
   value,
   onChange,
+  onInputChange,
   isLoading,
   slotProps,
 }: Props) {
@@ -35,15 +37,11 @@ export function SearchBar({
   const [search, setSearch] = useState<string>(value ?? "");
 
   useEffect(() => {
-    if (!search.length && value && value.length) {
-      onChange("");
+    if (typeof value === "undefined") {
+      return;
     }
-  }, [search]);
 
-  useEffect(() => {
-    if (value !== search) {
-      setSearch(value ?? "");
-    }
+    setSearch(value);
   }, [value]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -67,12 +65,21 @@ export function SearchBar({
         value={search}
         label={label ?? t("SEARCH")}
         onKeyDown={handleKeyDown}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(event) => {
+          const nextValue = event.target.value;
+          setSearch(nextValue);
+          onInputChange?.(nextValue);
+        }}
         slotProps={{
           input: {
             endAdornment: search.length ? (
               <InputAdornment position="end">
-                <IconButton onClick={() => setSearch("")}>
+                <IconButton
+                  onClick={() => {
+                    setSearch("");
+                    onInputChange?.("");
+                  }}
+                >
                   <Iconify icon="ic:round-close" />
                 </IconButton>
               </InputAdornment>

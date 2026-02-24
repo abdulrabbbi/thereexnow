@@ -2,9 +2,11 @@
 
 import { Iconify } from "@/components/iconify";
 import { Categories } from "@/graphql/generated";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import useLocales from "@/hooks/use-locales";
 import { useResponsive } from "@/hooks/use-responsive";
 import { HEADER } from "@/layouts/config-layout";
+import { SearchBar } from "@/sections/common/search-bar";
 import { hideScrollY } from "@/theme/styles";
 import {
   Box,
@@ -12,13 +14,12 @@ import {
   Divider,
   Drawer,
   IconButton,
-  InputAdornment,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ExercisesTopSearch } from "./components/exercises-top-search";
 import { ExercisesNav } from "./exercises-nav";
 import { ExercisesRoutineActions } from "./exercises-routine-actions";
 import { ExercisesSortSelect, ExercisesSortType } from "./exercises-sort-select";
@@ -56,10 +57,10 @@ export const ExercisesControls = memo(function ExercisesControls({
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [mdCategoriesOpen, setMdCategoriesOpen] = useState(false);
-
   const [searchInput, setSearchInput] = useState(keyword);
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const [focusSearchOnOpen, setFocusSearchOnOpen] = useState(false);
+
+  const debouncedSearchInput = useDebouncedValue(searchInput.trim(), 400);
+  const lastAppliedKeywordRef = useRef(keyword);
 
   const activeFiltersCount = useMemo(() => {
     return (
@@ -72,35 +73,33 @@ export const ExercisesControls = memo(function ExercisesControls({
 
   useEffect(() => {
     setSearchInput(keyword);
+    lastAppliedKeywordRef.current = keyword;
   }, [keyword]);
 
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      const next = searchInput.trim();
-      if (next !== keyword) {
-        onResetPage?.();
-        onKeywordChange(next);
-      }
-    }, 400);
+  const applyKeyword = useCallback(
+    (value: string) => {
+      const nextKeyword = value.trim();
 
-    return () => clearTimeout(handle);
-  }, [searchInput, keyword, onKeywordChange, onResetPage]);
+      if (nextKeyword === lastAppliedKeywordRef.current) {
+        return;
+      }
+
+      lastAppliedKeywordRef.current = nextKeyword;
+      onResetPage?.();
+      onKeywordChange(nextKeyword);
+    },
+    [onKeywordChange, onResetPage],
+  );
+
+  useEffect(() => {
+    applyKeyword(debouncedSearchInput);
+  }, [applyKeyword, debouncedSearchInput]);
 
   // Close irrelevant drawers when resizing across breakpoints.
   useEffect(() => {
     if (mdUp) setMobileFiltersOpen(false);
     if (lgUp) setMdCategoriesOpen(false);
   }, [mdUp, lgUp]);
-
-  useEffect(() => {
-    if (!mobileFiltersOpen || !focusSearchOnOpen) return;
-    // Allow Drawer mount + transition before focusing.
-    const id = window.setTimeout(() => {
-      searchInputRef.current?.focus();
-      setFocusSearchOnOpen(false);
-    }, 50);
-    return () => window.clearTimeout(id);
-  }, [mobileFiltersOpen, focusSearchOnOpen]);
 
   const sortLabel = useMemo(() => {
     switch (sortBy) {
@@ -113,11 +112,7 @@ export const ExercisesControls = memo(function ExercisesControls({
     }
   }, [sortBy, t]);
 
-  const openMobileFilters = (opts?: { focusSearch?: boolean }) => {
-    if (opts?.focusSearch) setFocusSearchOnOpen(true);
-    setMobileFiltersOpen(true);
-  };
-
+  const openMobileFilters = () => setMobileFiltersOpen(true);
   const closeMobileFilters = () => setMobileFiltersOpen(false);
   const openMdCategories = () => setMdCategoriesOpen(true);
   const closeMdCategories = () => setMdCategoriesOpen(false);
@@ -127,34 +122,24 @@ export const ExercisesControls = memo(function ExercisesControls({
     onSortChange(value);
   };
 
-  const SearchField = (
-    <TextField
-      fullWidth
-      size="small"
+  const handleSearchSubmit = useCallback(
+    (value: string) => {
+      const nextKeyword = value.trim();
+      setSearchInput(nextKeyword);
+      applyKeyword(nextKeyword);
+    },
+    [applyKeyword],
+  );
+
+  const desktopSearchField = (
+    <SearchBar
       value={searchInput}
+      onChange={handleSearchSubmit}
+      onInputChange={setSearchInput}
+      isLoading={!!keyword && isFetching}
       label={t("SEARCH_EXERCISE")}
-      inputRef={searchInputRef}
-      onChange={(e) => setSearchInput(e.target.value)}
       slotProps={{
-        input: {
-          endAdornment: (
-            <InputAdornment position="end">
-              {isFetching && !!keyword ? (
-                <Iconify icon="svg-spinners:90-ring-with-bg" width={18} />
-              ) : null}
-              {searchInput.length ? (
-                <IconButton
-                  edge="end"
-                  aria-label="Clear search"
-                  onClick={() => setSearchInput("")}
-                  size="small"
-                >
-                  <Iconify icon="ic:round-close" width={18} />
-                </IconButton>
-              ) : null}
-            </InputAdornment>
-          ),
-        },
+        root: { px: 0, minWidth: 0 },
       }}
     />
   );
@@ -162,43 +147,40 @@ export const ExercisesControls = memo(function ExercisesControls({
   if (!mdUp) {
     return (
       <>
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="center"
-          sx={{ minWidth: 0 }}
-        >
-          <Button
-            size="small"
-            color="inherit"
-            variant="outlined"
-            startIcon={<Iconify icon="solar:filters-bold-duotone" />}
-            onClick={() => openMobileFilters()}
-            sx={{ flexShrink: 0, justifyContent: "flex-start" }}
-          >
-            {t("FILTERS")}
-          </Button>
+        <ExercisesTopSearch
+          value={searchInput}
+          isLoading={!!keyword && isFetching}
+          onSearchChange={setSearchInput}
+          onSearchSubmit={handleSearchSubmit}
+          leftSlot={
+            <>
+              <Button
+                size="small"
+                color="inherit"
+                variant="outlined"
+                startIcon={<Iconify icon="solar:filters-bold-duotone" />}
+                onClick={openMobileFilters}
+                sx={{ flexShrink: 0, justifyContent: "flex-start" }}
+              >
+                {t("FILTERS")}
+              </Button>
 
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ display: "block" }}
-              noWrap
-            >
-              {activeFiltersCount ? `${activeFiltersCount} ${t("FILTERS")}` : ""}
-              {sortBy !== ExercisesSortType.DEFAULT ? ` • ${t("SORT")}: ${sortLabel}` : ""}
-            </Typography>
-          </Box>
-
-          <IconButton
-            size="small"
-            aria-label={t("SEARCH")}
-            onClick={() => openMobileFilters({ focusSearch: true })}
-          >
-            <Iconify icon="eva:search-fill" />
-          </IconButton>
-        </Stack>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block" }}
+                  noWrap
+                >
+                  {activeFiltersCount ? `${activeFiltersCount} ${t("FILTERS")}` : ""}
+                  {sortBy !== ExercisesSortType.DEFAULT
+                    ? ` • ${t("SORT")}: ${sortLabel}`
+                    : ""}
+                </Typography>
+              </Box>
+            </>
+          }
+        />
 
         <Drawer
           anchor="bottom"
@@ -248,8 +230,6 @@ export const ExercisesControls = memo(function ExercisesControls({
 
               <ExercisesSortSelect value={sortBy} onChange={handleSortChange} />
 
-              {SearchField}
-
               <ExercisesRoutineActions onActionCompleted={closeMobileFilters} />
             </Stack>
           </Box>
@@ -282,7 +262,7 @@ export const ExercisesControls = memo(function ExercisesControls({
         </Grid>
 
         <Grid size={{ xs: 12, md: mdOnly ? 6 : 9 }} sx={{ minWidth: 0 }}>
-          {SearchField}
+          {desktopSearchField}
         </Grid>
 
         <Grid size={{ xs: 12 }} sx={{ minWidth: 0 }}>
