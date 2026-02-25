@@ -7,37 +7,50 @@ import {
 } from "@/graphql/generated";
 import { useGetTranslatedRoutines } from "@/hooks/helpers/translated-hooks";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import useLocales from "@/hooks/use-locales";
 import { useSetState } from "@/hooks/use-set-state";
-import { RouterLink } from "@/routes/components";
+import { HEADER } from "@/layouts/config-layout";
+import { useRouter } from "@/routes/hooks";
 import { getCategoriesRoute } from "@/routes/paths";
-import { SearchBar } from "@/sections/common/search-bar";
-import { Box, Button, Container } from "@mui/material";
+import { Box, Container, Paper } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { RoutinesToolbar } from "../components/RoutinesToolbar";
 import { EmptyRoutinesList } from "../empty-routines-list";
 import { RoutineCard } from "../routine-card";
 import { RoutineRemoveDialog } from "../routine-remove-dialog";
 import { RoutineShareDialog } from "../routine-share-dialog";
 
 export default function RoutinesView() {
-  const { t } = useLocales();
+  const router = useRouter();
 
+  const [query, setQuery] = useState("");
   const [keyword, setKeyword] = useState("");
-  const debouncedKeyword = useDebouncedValue(keyword.trim(), 400);
+  const debouncedQuery = useDebouncedValue(query.trim(), 400);
   const { state, setState, onResetState } = useSetState<{
     data?: Routines;
     variant?: "share" | "remove";
   }>({});
 
+  useEffect(() => {
+    setKeyword(debouncedQuery);
+  }, [debouncedQuery]);
+
+  const onSearch = useCallback(() => {
+    setKeyword(query.trim());
+  }, [query]);
+
+  const onAdd = useCallback(() => {
+    router.push(getCategoriesRoute({}));
+  }, [router]);
+
   const routineQueryVariables = useMemo<Routine_GetRoutinesQueryVariables | undefined>(
     () =>
-      debouncedKeyword
+      keyword
         ? {
-            where: { name: { contains: debouncedKeyword } },
+            where: { name: { contains: keyword } },
           }
         : undefined,
-    [debouncedKeyword],
+    [keyword],
   );
 
   const { data, isLoading, isFetching } = useGetTranslatedRoutines(
@@ -47,60 +60,29 @@ export default function RoutinesView() {
   return (
     <Container
       maxWidth="xl"
-      sx={{ pt: { xs: 2, md: 4 }, pb: { xs: 3, md: 5 }, minWidth: 0 }}
+      sx={{
+        pt: {
+          xs: `${HEADER.H_MOBILE + 12}px`,
+          md: `${HEADER.H_DESKTOP + 12}px`,
+        },
+        pb: { xs: 3, md: 5 },
+        minWidth: 0,
+      }}
     >
-      <Box sx={{ mb: { xs: 2, md: 3 }, minWidth: 0 }}>
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 1.5,
-            alignItems: "center",
-            minWidth: 0,
-          }}
-        >
-          <Box sx={{ flex: 1, minWidth: { xs: "100%", sm: 360 } }}>
-            <SearchBar
-              value={keyword}
-              onChange={setKeyword}
-              onInputChange={setKeyword}
-              label={t("SEARCH_ROUTINE")}
-              isLoading={!!debouncedKeyword && isFetching}
-              slotProps={{
-                root: {
-                  px: 0,
-                  width: 1,
-                  minWidth: 0,
-                  gap: 1,
-                  flexWrap: { xs: "wrap", sm: "nowrap" },
-                  alignItems: { xs: "stretch", sm: "center" },
-                },
-                button: {
-                  sx: {
-                    width: { xs: "100%", sm: 130 },
-                    minWidth: { xs: 0, sm: 130 },
-                    flexShrink: 0,
-                  },
-                },
-              }}
-            />
-          </Box>
-
-          <Button
-            size="medium"
-            variant="contained"
-            LinkComponent={RouterLink}
-            href={getCategoriesRoute({})}
-            sx={{
-              width: { xs: "100%", sm: "auto" },
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-            }}
-          >
-            {t("ADD_A_NEW_ROUTINE")}
-          </Button>
+      <Paper
+        variant="outlined"
+        sx={{ p: { xs: 1.5, md: 2 }, mb: { xs: 2, md: 3 }, minWidth: 0, width: 1 }}
+      >
+        <Box sx={{ minWidth: 0, width: 1 }}>
+          <RoutinesToolbar
+            value={query}
+            onChange={setQuery}
+            onSearch={onSearch}
+            onAdd={onAdd}
+            loading={!!keyword && isFetching}
+          />
         </Box>
-      </Box>
+      </Paper>
 
       {isLoading ? (
         <LoadingScreen sx={{ height: "60svh" }} />
