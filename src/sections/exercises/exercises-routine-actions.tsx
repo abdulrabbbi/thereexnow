@@ -10,16 +10,21 @@ import { SaveRoutineModal } from "../board/save-routine";
 import { SaveNoteDialog } from "./save-note-dialog";
 
 type Props = {
+  variant?: "desktop" | "mobile";
   onActionCompleted?: VoidFunction;
 };
 
-export function ExercisesRoutineActions({ onActionCompleted }: Props) {
+export function ExercisesRoutineActions({
+  variant = "desktop",
+  onActionCompleted,
+}: Props) {
   const board = useBoard();
   const { t } = useLocales();
   const { userData } = useUser();
   const saveRoutine = useBoolean();
   const addNoteDialog = useBoolean();
   const withLoginModal = useLoginModal();
+  const isMobileVariant = variant === "mobile";
 
   const disabled = !board.data.length;
 
@@ -56,17 +61,19 @@ export function ExercisesRoutineActions({ onActionCompleted }: Props) {
           minWidth: 0,
           width: 1,
           display: "grid",
-          gap: 2,
-          gridTemplateColumns: {
-            xs: "1fr",
-            sm: "repeat(2, minmax(0, 1fr))",
-            md: "repeat(3, minmax(0, 1fr))",
-          },
+          gap: isMobileVariant ? 1 : 2,
+          gridTemplateColumns: isMobileVariant
+            ? "1fr"
+            : {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                md: "repeat(3, minmax(0, 1fr))",
+              },
         }}
       >
         <Button
           fullWidth
-          size="medium"
+          size={isMobileVariant ? "small" : "medium"}
           color="inherit"
           variant="outlined"
           onClick={onAddNote}
@@ -78,7 +85,7 @@ export function ExercisesRoutineActions({ onActionCompleted }: Props) {
 
         <Button
           fullWidth
-          size="medium"
+          size={isMobileVariant ? "small" : "medium"}
           color="inherit"
           variant="outlined"
           disabled={disabled}
@@ -90,7 +97,7 @@ export function ExercisesRoutineActions({ onActionCompleted }: Props) {
 
         <Button
           fullWidth
-          size="medium"
+          size={isMobileVariant ? "small" : "medium"}
           color="inherit"
           variant="outlined"
           disabled={disabled}

@@ -14,7 +14,6 @@ import {
   Divider,
   Drawer,
   IconButton,
-  Stack,
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
@@ -58,6 +57,7 @@ export const ExercisesControls = memo(function ExercisesControls({
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [mdCategoriesOpen, setMdCategoriesOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(keyword);
+  const categoriesScrollRef = useRef<HTMLDivElement | null>(null);
 
   const debouncedSearchInput = useDebouncedValue(searchInput.trim(), 400);
   const lastAppliedKeywordRef = useRef(keyword);
@@ -100,6 +100,18 @@ export const ExercisesControls = memo(function ExercisesControls({
     if (mdUp) setMobileFiltersOpen(false);
     if (lgUp) setMdCategoriesOpen(false);
   }, [mdUp, lgUp]);
+
+  useEffect(() => {
+    if (!mobileFiltersOpen) {
+      return;
+    }
+
+    const frameId = requestAnimationFrame(() => {
+      categoriesScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [mobileFiltersOpen]);
 
   const sortLabel = useMemo(() => {
     switch (sortBy) {
@@ -193,6 +205,7 @@ export const ExercisesControls = memo(function ExercisesControls({
               borderTopRightRadius: 16,
               display: "flex",
               flexDirection: "column",
+              overflow: "hidden",
             },
           }}
         >
@@ -213,25 +226,49 @@ export const ExercisesControls = memo(function ExercisesControls({
 
           <Divider />
 
-          <Box sx={{ p: 2, flex: 1, minHeight: 0, overflow: "auto" }}>
-            <Stack spacing={2} sx={{ minWidth: 0 }}>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  {t("CATEGORIES")}
-                </Typography>
-                <Box sx={{ minWidth: 0, ...hideScrollY }}>
-                  <ExercisesNav
-                    data={categories}
-                    source={source}
-                    onItemClick={closeMobileFilters}
-                  />
-                </Box>
-              </Box>
-
+          <Box
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              minWidth: 0,
+              p: 2,
+              pb: "max(12px, env(safe-area-inset-bottom))",
+              overflow: "auto",
+              WebkitOverflowScrolling: "touch",
+            }}
+            ref={categoriesScrollRef}
+          >
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              {t("CATEGORIES")}
+            </Typography>
+            <Box
+              sx={{
+                position: "sticky",
+                top: 0,
+                zIndex: 2,
+                bgcolor: "background.paper",
+                pt: 1,
+                pb: 1.25,
+                borderBottom: 1,
+                borderColor: "divider",
+              }}
+            >
               <ExercisesSortSelect value={sortBy} onChange={handleSortChange} />
+              <Box sx={{ mt: 1.5 }}>
+                <ExercisesRoutineActions
+                  variant="mobile"
+                  onActionCompleted={closeMobileFilters}
+                />
+              </Box>
+            </Box>
 
-              <ExercisesRoutineActions onActionCompleted={closeMobileFilters} />
-            </Stack>
+            <Box sx={{ mt: 2 }}>
+              <ExercisesNav
+                data={categories}
+                source={source}
+                onItemClick={closeMobileFilters}
+              />
+            </Box>
           </Box>
         </Drawer>
       </>
