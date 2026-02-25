@@ -1,57 +1,88 @@
 "use client";
 
-import { LoadingScreen } from "@/components/loading-screen";
-import { useAppSettings } from "@/hooks/helpers/app-settings";
-import { useResponsive } from "@/hooks/use-responsive";
-import { useTabs } from "@/hooks/use-tabs";
-import { Box, Container, Tab, Tabs } from "@mui/material";
+import useLocales from "@/hooks/use-locales";
+import { getTermsAccepted, setTermsAccepted } from "@/utils/terms-acceptance";
+import { Box, Button, Chip, Container, Paper, Stack, Typography } from "@mui/material";
+import { useCallback, useEffect, useState } from "react";
+import TermsDialog from "../TermsDialog";
 
 export default function TermsView() {
-  const tabs = useTabs("terms");
-  const isDesktop = useResponsive("up", "sm");
+  const { t } = useLocales();
+  const [accepted, setAccepted] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
-  const { appSettingsData, appSettingsLoading } = useAppSettings();
+  useEffect(() => {
+    const acceptedValue = getTermsAccepted();
 
-  const TABS = [
-    {
-      value: "terms",
-      label: "Terms and condition",
-      content: appSettingsData?.termsAndConditions,
-    },
-    {
-      value: "privacy",
-      label: "Privacy policy",
-      content: appSettingsData?.privacyPolicy,
-    },
-  ];
+    setAccepted(acceptedValue);
+    setDialogOpen(!acceptedValue);
+    setInitialized(true);
+  }, []);
+
+  const handleOpen = useCallback(() => {
+    setDialogOpen(true);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setDialogOpen(false);
+  }, []);
+
+  const handleAccept = useCallback(() => {
+    setTermsAccepted();
+    setAccepted(true);
+    setDialogOpen(false);
+  }, []);
 
   return (
-    <Container maxWidth="lg" sx={{ px: { xs: 0, md: 2 } }}>
-      {appSettingsLoading ? (
-        <LoadingScreen sx={{ height: "60svh" }} />
-      ) : (
-        <>
-          <Tabs
-            value={tabs.value}
-            onChange={tabs.onChange}
-            variant={isDesktop ? "standard" : "fullWidth"}
-          >
-            {TABS.map((tab) => (
-              <Tab key={tab.value} label={tab.label} value={tab.value} />
-            ))}
-          </Tabs>
+    <Container maxWidth="md" sx={{ px: { xs: 0, md: 2 } }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 2, sm: 3 },
+          borderRadius: 2,
+          border: 1,
+          borderColor: "divider",
+        }}
+      >
+        <Stack
+          spacing={2}
+          direction={{ xs: "column", sm: "row" }}
+          alignItems={{ sm: "center" }}
+          justifyContent="space-between"
+        >
+          <Box>
+            <Typography variant="h4" gutterBottom>
+              {t("TERMS_AND_CONDITION")}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Review the latest terms and keep your account acceptance up to date.
+            </Typography>
+          </Box>
 
-          {TABS.map(
-            (tab) =>
-              tab.value === tabs.value && (
-                <Box
-                  key={tab.value}
-                  component="div"
-                  dangerouslySetInnerHTML={{ __html: tab.content as string }}
-                />
-              )
-          )}
-        </>
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+            {initialized && (
+              <Chip
+                size="small"
+                color={accepted ? "success" : "warning"}
+                label={accepted ? t("ACCEPTED") : "Pending"}
+              />
+            )}
+
+            <Button variant="contained" onClick={handleOpen}>
+              View terms
+            </Button>
+          </Stack>
+        </Stack>
+      </Paper>
+
+      {initialized && dialogOpen && (
+        <TermsDialog
+          open={dialogOpen}
+          accepted={accepted}
+          onClose={handleClose}
+          onAccept={handleAccept}
+        />
       )}
     </Container>
   );
