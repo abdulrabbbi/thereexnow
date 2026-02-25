@@ -23,7 +23,7 @@ export function EmptyRoutinesList() {
             LinkComponent={RouterLink}
             href={getCategoriesRoute({})}
           >
-            Got to exercises
+            Go to exercises
           </Button>
         }
       />

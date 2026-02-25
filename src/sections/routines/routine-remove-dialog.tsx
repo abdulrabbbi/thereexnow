@@ -1,8 +1,5 @@
 import { ConfirmDialog } from "@/components/custom-dialog";
-import {
-  Routines,
-  useRoutine_DeleteRoutineMutation,
-} from "@/graphql/generated";
+import { useRoutine_DeleteRoutineMutation } from "@/graphql/generated";
 import useLocales from "@/hooks/use-locales";
 import { Button } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,11 +7,17 @@ import { toast } from "sonner";
 
 type Props = {
   open: boolean;
-  routine: Routines;
+  routineId: number;
   onClose: VoidFunction;
+  onDeleted?: VoidFunction;
 };
 
-export function RoutineRemoveDialog({ open, onClose, routine }: Props) {
+export function RoutineRemoveDialog({
+  open,
+  onClose,
+  routineId,
+  onDeleted,
+}: Props) {
   const { t } = useLocales();
   const queryClient = useQueryClient();
 
@@ -22,14 +25,18 @@ export function RoutineRemoveDialog({ open, onClose, routine }: Props) {
 
   const onRemove = () => {
     mutate(
-      { id: routine.id },
+      { id: routineId },
       {
         onSuccess: (res) => {
           if (res.routine_deleteRoutine?.status.code === 1) {
             queryClient.invalidateQueries({
               queryKey: ["routine_getRoutines"],
             });
+            queryClient.invalidateQueries({
+              queryKey: ["routineDetail", routineId],
+            });
 
+            onDeleted?.();
             onClose();
           } else {
             toast.warning(res.routine_deleteRoutine?.status.value);

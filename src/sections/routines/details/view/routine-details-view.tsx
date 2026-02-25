@@ -1,108 +1,235 @@
 "use client";
 
-import { SaveIcon } from "@/assets/icons/save-icon";
-import { Field, Form } from "@/components/hook-form";
-import { Iconify } from "@/components/iconify";
 import { LoadingScreen } from "@/components/loading-screen";
-import TextareaTranslate from "@/components/textarea-translate";
-import TranslateText from "@/components/translate-text";
-import {
-  RoutineExercises,
-  useRoutine_UpdateRoutineMutation,
-} from "@/graphql/generated";
+import { useRoutine_UpdateRoutineMutation } from "@/graphql/generated";
 import { useGetTranslatedRoutine } from "@/hooks/helpers/translated-hooks";
+import { useResponsive } from "@/hooks/use-responsive";
 import useLocales from "@/hooks/use-locales";
-import { useShare } from "@/hooks/use-share";
-import useSimpleTranslate from "@/hooks/use-simple-translate";
-import MiniNavLayout from "@/layouts/mini-nav-layout";
-import { MiniNavItemsType } from "@/layouts/mini-nav-layout/types";
 import { useRouter, useSearchParams } from "@/routes/hooks";
-import { ExerciseGallery } from "@/sections/common/exercise-gallery";
-import { ExerciseRepsHold } from "@/sections/common/exercise-reps-hold";
-import { ExerciseSetPerform } from "@/sections/common/exercise-set-perform";
-import { ExerciseWorkout } from "@/sections/common/exercise-workout";
-import { MediaType } from "@/types";
-import { exerciseNoteStrigify, getOtherMedia } from "@/utils";
-import { TextField } from "@mui/material";
-import { TextareaAutosize } from "@mui/material";
-import { Box, Container, Divider, Fab, Stack, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import { Box, Button, Container, Stack, Typography } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChangeEvent, useEffect, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { RoutineRemoveDialog } from "../../routine-remove-dialog";
+import { RoutineShareDialog } from "../../routine-share-dialog";
+import { RoutineDetailsHeader } from "../components/routine-details-header";
+import {
+  RoutineExerciseCard,
+  RoutineExerciseDraft,
+} from "../components/routine-exercise-card";
+import { RoutineNoteCard } from "../components/routine-note-card";
+import { exerciseNoteStrigify } from "@/utils";
 
-type SimplifiedRoutineExercises = RoutineExercises & {
-  workoutMove: Array<string>;
-};
+function toRoutineExerciseDraft(
+  value: unknown,
+): Array<RoutineExerciseDraft> {
+  if (!Array.isArray(value)) return [];
 
-type FormType = {
-  name: string;
-  note: string;
-  data: Array<SimplifiedRoutineExercises>;
-};
+  return value.filter(Boolean).map((item) => {
+    const nextItem = item as RoutineExerciseDraft;
 
-const defaultValues: FormType = {
-  note: "",
-  name: "",
-  data: [],
-};
+    return {
+      ...nextItem,
+      workoutMove: Array.isArray(nextItem.workoutMove)
+        ? nextItem.workoutMove
+        : [],
+    };
+  });
+}
 
 export default function RoutineDetailsView() {
-  const searchParam = useSearchParams();
-  const { translateAll } = useSimpleTranslate();
-  const routineId = searchParam.get("id");
-
-  const share = useShare();
   const { t } = useLocales();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const searchParam = useSearchParams();
+  const isMobile = useResponsive("down", "sm");
+  const hydratedRoutineIdRef = useRef<number | null>(null);
 
-  const { routineData: routine, routineLoading } = useGetTranslatedRoutine(
-    Number(routineId)
+  const routineId = Number(searchParam?.get("id") ?? 0);
+
+  const [routineName, setRoutineName] = useState("");
+  const [routineNote, setRoutineNote] = useState("");
+  const [routineExercises, setRoutineExercises] = useState<Array<RoutineExerciseDraft>>(
+    [],
   );
+  const [expandedExerciseId, setExpandedExerciseId] = useState<number | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+
+  const { routineData: routine, routineLoading } = useGetTranslatedRoutine(routineId);
 
   const { mutate: updateRoutineMutation, isPending: updateRoutineLoading } =
     useRoutine_UpdateRoutineMutation();
 
-  const methods = useForm({ defaultValues });
+  useEffect(() => {
+    if (!routine?.id) return;
+    if (hydratedRoutineIdRef.current === routine.id) return;
 
-  const values = methods.watch();
+    const nextExercises = toRoutineExerciseDraft(routine.routineExercises);
+
+    setRoutineName(routine.name ?? "");
+    setRoutineNote(routine.description ?? "");
+    setRoutineExercises(nextExercises);
+    setExpandedExerciseId(isMobile ? null : (nextExercises[0]?.id ?? null));
+    hydratedRoutineIdRef.current = routine.id;
+  }, [isMobile, routine]);
 
   useEffect(() => {
-    if (routine) {
-      methods.reset({
-        name: routine.name ?? "",
-        note: routine.description ?? "",
-        data: routine.routineExercises as any,
-      });
+    if (!routineExercises.length) {
+      setExpandedExerciseId(null);
+      return;
     }
-  }, [routine]);
 
-  const onSubmit = async (formValues: typeof defaultValues) => {
+    if (isMobile) {
+      setExpandedExerciseId(null);
+      return;
+    }
+
+    setExpandedExerciseId((currentExpandedExerciseId) => {
+      if (currentExpandedExerciseId !== null) {
+        const exists = routineExercises.some(
+          (exercise) => exercise.id === currentExpandedExerciseId,
+        );
+
+        if (exists) return currentExpandedExerciseId;
+      }
+
+      return routineExercises[0]?.id ?? null;
+    });
+  }, [isMobile, routineExercises]);
+
+  const updateExerciseAt = useCallback(
+    (
+      index: number,
+      updater: (exercise: RoutineExerciseDraft) => RoutineExerciseDraft,
+    ) => {
+      setRoutineExercises((currentExercises) =>
+        currentExercises.map((exercise, exerciseIndex) =>
+          exerciseIndex === index ? updater(exercise) : exercise,
+        ),
+      );
+    },
+    [],
+  );
+
+  const handleAddWorkoutStep = useCallback(
+    (index: number) => {
+      updateExerciseAt(index, (exercise) => ({
+        ...exercise,
+        workoutMove: [...(exercise.workoutMove ?? []), ""],
+      }));
+    },
+    [updateExerciseAt],
+  );
+
+  const handleRemoveWorkoutStep = useCallback(
+    (index: number, stepIndex: number) => {
+      updateExerciseAt(index, (exercise) => ({
+        ...exercise,
+        workoutMove: (exercise.workoutMove ?? []).filter(
+          (_, currentStepIndex) => currentStepIndex !== stepIndex,
+        ),
+      }));
+    },
+    [updateExerciseAt],
+  );
+
+  const handleChangeWorkoutStep = useCallback(
+    (index: number, stepIndex: number, value: string) => {
+      updateExerciseAt(index, (exercise) => ({
+        ...exercise,
+        workoutMove: (exercise.workoutMove ?? []).map((step, currentStepIndex) =>
+          currentStepIndex === stepIndex ? value : step,
+        ),
+      }));
+    },
+    [updateExerciseAt],
+  );
+
+  const handleChangeExerciseField = useCallback(
+    (
+      index: number,
+      field: "hold" | "reps" | "holdType" | "set" | "perform" | "performType",
+      value: string,
+    ) => {
+      updateExerciseAt(index, (exercise) => ({
+        ...exercise,
+        [field]: value as never,
+      }));
+    },
+    [updateExerciseAt],
+  );
+
+  const handleRemoveExercise = useCallback(
+    (index: number) => {
+      setRoutineExercises((currentExercises) => {
+        const removedExercise = currentExercises[index];
+        const nextExercises = currentExercises.filter(
+          (_, exerciseIndex) => exerciseIndex !== index,
+        );
+
+        if (removedExercise?.id === expandedExerciseId) {
+          setExpandedExerciseId(isMobile ? null : (nextExercises[0]?.id ?? null));
+        }
+
+        return nextExercises;
+      });
+    },
+    [expandedExerciseId, isMobile],
+  );
+
+  const handleToggleExercise = useCallback((exerciseId: number, expanded: boolean) => {
+    setExpandedExerciseId((currentExpandedExerciseId) => {
+      if (expanded) return exerciseId;
+      return currentExpandedExerciseId === exerciseId
+        ? null
+        : currentExpandedExerciseId;
+    });
+  }, []);
+
+  const handleAddWorkoutFromStickyAction = useCallback(() => {
+    if (!routineExercises.length) return;
+
+    const currentExerciseIndex = routineExercises.findIndex(
+      (exercise) => exercise.id === expandedExerciseId,
+    );
+    const targetExerciseIndex =
+      currentExerciseIndex >= 0 ? currentExerciseIndex : 0;
+
+    handleAddWorkoutStep(targetExerciseIndex);
+
+    const targetExercise = routineExercises[targetExerciseIndex];
+    if (targetExercise) {
+      setExpandedExerciseId(targetExercise.id);
+    }
+  }, [expandedExerciseId, handleAddWorkoutStep, routineExercises]);
+
+  const handleSaveRoutine = useCallback(() => {
+    if (!routineId) return;
+
     updateRoutineMutation(
       {
-        fileUrl: "",
-        id: Number(routineId),
-        name: formValues.name,
-        note: formValues.note,
-        exercises: formValues.data.map((item) => ({
-          id: item.id,
-          set: Number(item.set),
-          hold: Number(item.hold),
-          reps: Number(item.reps),
-          holdType: item.holdType,
-          exerciseId: item.exerciseId,
-          perform: Number(item.perform),
-          performType: item.performType,
-          note: exerciseNoteStrigify(item.note!, item.workoutMove),
+        id: routineId,
+        fileUrl: routine?.fileUrl ?? "",
+        name: routineName,
+        note: routineNote,
+        exercises: routineExercises.map((exercise) => ({
+          id: exercise.id,
+          set: Number(exercise.set),
+          hold: Number(exercise.hold),
+          reps: Number(exercise.reps),
+          holdType: exercise.holdType,
+          exerciseId: exercise.exerciseId,
+          perform: Number(exercise.perform),
+          performType: exercise.performType,
+          note: exerciseNoteStrigify(exercise.note ?? "", exercise.workoutMove ?? []),
         })),
       },
       {
         onSuccess: (res) => {
           if (res.routine_updateRoutine?.status.code === 1) {
             queryClient.invalidateQueries({
-              queryKey: ["routine_getRoutine"],
+              queryKey: ["routineDetail", routineId],
             });
             queryClient.invalidateQueries({
               queryKey: ["routine_getRoutines"],
@@ -113,192 +240,123 @@ export default function RoutineDetailsView() {
             toast.warning(res.routine_updateRoutine?.status.value);
           }
         },
-      }
+      },
     );
-  };
+  }, [queryClient, routine?.fileUrl, routineExercises, routineId, routineName, routineNote, router, updateRoutineMutation]);
 
-  const navItems: Array<MiniNavItemsType> = [
-    {
-      title: t("SAVE"),
-      isLoading: updateRoutineLoading,
-      onClick: () => onSubmit(methods.watch()),
-      icon: <SaveIcon />,
-    },
-    {
-      ...share.email,
-      onClick: () =>
-        share.email.onClick({
-          note: values.note,
-          exercises: values.data as any,
-        }),
-    },
-    {
-      ...share.print,
-      onClick: () =>
-        share.print.onClick({
-          note: values.note,
-          exercises: values.data as any,
-        }),
-    },
-    {
-      ...share.qrCode,
-      onClick: () =>
-        share.qrCode.onClick({
-          note: values.note,
-          exercises: values.data as any,
-        }),
-    },
-  ];
-
-  const { remove } = useFieldArray({
-    name: "data",
-    control: methods.control,
-  });
-
-  function AddExercise(index: number) {
-    const currentMoves = methods.getValues(
-      `data.${index}.workoutMove`
-    ) as Array<string>;
-
-    methods.setValue(
-      `data.${index}.workoutMove`,
-      [...(currentMoves || []), ""],
-      {
-        shouldValidate: true,
-      }
+  if (!routineId) {
+    return (
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Typography variant="h6">Routine not found</Typography>
+      </Container>
     );
   }
 
   return (
-    <Form methods={methods} onSubmit={methods.handleSubmit(onSubmit)}>
-      <MiniNavLayout
-        navItems={navItems}
-        slotProps={{
-          content: {
-            className:"hide-in-print",
-            sx: {
-              scrollbarWidth: "auto", // Hide scrollbar for Firefox
-              msOverflowStyle: "auto", // Hide scrollbar for IE and Edge (legacy)
-              "&::-webkit-scrollbar": {
-                display: "auto", // Hide scrollbar for WebKit browsers (Chrome, Safari, Edge)
-              },
-            },
-          },
-        }}
-      >
-        <Container maxWidth="lg">
-          {routineLoading ? (
-            <LoadingScreen sx={{ height: "60svh" }} />
-          ) : (
-            <>
-              <Typography mb={3} variant="h3">
-                <TranslateText>{routine?.name ?? ""}</TranslateText>
-              </Typography>
+    <Container maxWidth="lg" sx={{ py: { xs: 1.5, md: 3 }, minWidth: 0 }}>
+      {routineLoading ? (
+        <LoadingScreen sx={{ height: "60svh" }} />
+      ) : (
+        <>
+          <RoutineDetailsHeader
+            title={routineName}
+            exerciseCount={routineExercises.length}
+            updatedAt={null}
+            isSaving={updateRoutineLoading}
+            onBack={() => router.back()}
+            onShare={() => setShareDialogOpen(true)}
+            onDelete={() => setRemoveDialogOpen(true)}
+            onSave={handleSaveRoutine}
+          />
 
-              <TextareaTranslate
-                description={values.note}
-                onUpdateValue={(val) => methods.setValue("note", val)}
-              />
+          <Box sx={{ maxWidth: 1100, mx: "auto", minWidth: 0 }}>
+            <RoutineNoteCard value={routineNote} onChange={setRoutineNote} />
 
-              <Stack my={5} spacing={2} divider={<Divider />}>
-                {values.data.map((item, index) => (
-                  <Box key={item.id} sx={{ py: 5, position: "relative" }}>
-                    <Grid key={item.id} container spacing={3}>
-                      <Grid
-                        size={{ xs: 12, md: 8 }}
-                        display={{ xs: "none", md: "initial" }}
-                      >
-                        <ExerciseGallery
-                          data={
-                            getOtherMedia(
-                              item.exercise?.otherMediaUrl
-                            ) as Array<MediaType>
-                          }
-                        />
-                      </Grid>
+            <Stack spacing={1.5} sx={{ minWidth: 0 }}>
+              {routineExercises.length ? (
+                routineExercises.map((exercise, index) => (
+                  <RoutineExerciseCard
+                    key={exercise.id}
+                    item={exercise}
+                    isMobile={isMobile}
+                    expanded={expandedExerciseId === exercise.id}
+                    onToggleExpanded={(expanded) =>
+                      handleToggleExercise(exercise.id, expanded)
+                    }
+                    onRemoveExercise={() => handleRemoveExercise(index)}
+                    onAddWorkoutStep={() => handleAddWorkoutStep(index)}
+                    onChangeWorkoutStep={(stepIndex, value) =>
+                      handleChangeWorkoutStep(index, stepIndex, value)
+                    }
+                    onRemoveWorkoutStep={(stepIndex) =>
+                      handleRemoveWorkoutStep(index, stepIndex)
+                    }
+                    onChangeMetric={(field, value) =>
+                      handleChangeExerciseField(index, field, value)
+                    }
+                  />
+                ))
+              ) : (
+                <Box
+                  sx={{
+                    py: 4,
+                    textAlign: "center",
+                    borderRadius: 2,
+                    border: "1px dashed",
+                    borderColor: "divider",
+                  }}
+                >
+                  <Typography color="text.secondary">{t("NO_EXERCISE")}</Typography>
+                </Box>
+              )}
+            </Stack>
+          </Box>
 
-                      <Grid size={{ xs: 12, md: 4 }} sx={{ py: 1 }}>
-                        <Stack mb={3} direction="row" alignItems="center">
-                          <Stack flex={1}>
-                            <Typography fontWeight={500}>
-                              <TranslateText>
-                                {item.exercise?.name}
-                              </TranslateText>
-                            </Typography>
-                          </Stack>
+          <Box
+            sx={{
+              left: 0,
+              right: 0,
+              bottom: 0,
+              mt: 2,
+              zIndex: 12,
+              position: { xs: "sticky", md: "static" },
+              pt: { xs: 1.25, md: 0 },
+              pb: { xs: "max(12px, env(safe-area-inset-bottom))", md: 0 },
+              px: { xs: 0.5, md: 0 },
+              bgcolor: { xs: "background.default", md: "transparent" },
+              borderTop: { xs: "1px solid", md: "none" },
+              borderColor: "divider",
+            }}
+          >
+            <Button
+              fullWidth
+              size="large"
+              variant="contained"
+              onClick={handleAddWorkoutFromStickyAction}
+              disabled={!routineExercises.length}
+            >
+              {t("Add_New_Workout")}
+            </Button>
+          </Box>
+        </>
+      )}
 
-                          <Fab
-                            size="small"
-                            variant="soft"
-                            color="default"
-                            onClick={() => remove(index)}
-                          >
-                            <Iconify width={24} icon="ic:round-close" />
-                          </Fab>
-                        </Stack>
+      {shareDialogOpen ? (
+        <RoutineShareDialog
+          open
+          routineId={routineId}
+          onClose={() => setShareDialogOpen(false)}
+        />
+      ) : null}
 
-                        <ExerciseWorkout
-                          sx={{ mb: 3 }}
-                          data={item?.workoutMove ?? []}
-                          exerciseId={item?.id as number}
-                          onChange={(args) =>
-                            methods.setValue(
-                              `data.${index}.workoutMove.${args.index}`,
-                              args.value as any
-                            )
-                          }
-                          onAdd={() => AddExercise(index)}
-                          onRemove={(args) => {
-                            const currentMoves = methods.getValues(
-                              `data.${index}.workoutMove`
-                            ) as Array<string>;
-
-                            methods.setValue(
-                              `data.${index}.workoutMove`,
-                              currentMoves.filter(
-                                (_, idx) => idx !== args.index
-                              ),
-                              { shouldValidate: true }
-                            );
-                          }}
-                        />
-
-                        <ExerciseRepsHold
-                          reps={item.reps}
-                          hold={item.hold}
-                          holdType={item.holdType}
-                          exerciseId={item.exerciseId}
-                          onChange={(args) => {
-                            methods.setValue(
-                              `data.${index}.${args.field}`,
-                              args.value as any
-                            );
-                          }}
-                        />
-
-                        <Box sx={{ my: 3 }} />
-
-                        <ExerciseSetPerform
-                          set={item.set}
-                          perform={item.perform}
-                          exerciseId={item.exerciseId}
-                          performType={item.performType}
-                          onChange={(args) => {
-                            methods.setValue(
-                              `data.${index}.${args.field}`,
-                              args.value as any
-                            );
-                          }}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Box>
-                ))}
-              </Stack>
-            </>
-          )}
-        </Container>
-      </MiniNavLayout>
-    </Form>
+      {removeDialogOpen && routine?.id ? (
+        <RoutineRemoveDialog
+          open
+          routineId={routine.id}
+          onClose={() => setRemoveDialogOpen(false)}
+          onDeleted={() => router.replace("/routines")}
+        />
+      ) : null}
+    </Container>
   );
 }

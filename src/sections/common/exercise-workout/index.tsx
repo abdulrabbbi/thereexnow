@@ -11,9 +11,7 @@ import {
   TextField,
 } from "@mui/material";
 import { Theme } from "@mui/material/styles";
-import { ChangeEvent, useEffect, useState } from "react";
-
-let timer: any = null;
+import { ChangeEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 
 type onRemoveArgs = {
   index: number;
@@ -33,65 +31,86 @@ type Props = {
   onAdd?: (exerciseId: number) => void;
   onRemove?: (args: onRemoveArgs) => void;
   onChange?: (args: onChangeArgs) => void;
+  hideAddButton?: boolean;
 };
 
-export function ExerciseWorkout({
+export const ExerciseWorkout = memo(function ExerciseWorkout({
   sx,
   data,
   onAdd,
   onRemove,
   onChange,
   exerciseId,
+  hideAddButton = false,
 }: Props) {
   const { t, currentLang } = useLocales();
   const [texts, setTexts] = useState<string[]>([]);
   const { translateAll, isPending } = useSimpleTranslate();
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!isPending) {
-      if (currentLang.value !== "en") translateAll(data, setTexts);
-      else setTexts(data);
+    if (currentLang.value === "en") {
+      setTexts(data);
+      return;
     }
-  }, [currentLang.value, data]);
 
-  function addNewItem() {
+    if (!isPending) {
+      translateAll(data, setTexts);
+    }
+  }, [currentLang.value, data, isPending, translateAll]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  const addNewItem = useCallback(() => {
     onAdd?.(exerciseId);
     setTexts((pre) => [...pre, ""]);
-  }
+  }, [exerciseId, onAdd]);
 
-  function removeItem(index: number) {
-    const newValues = [...texts];
-    newValues.splice(index, 1);
-    setTexts(newValues);
+  const removeItem = useCallback((index: number) => {
+    setTexts((currentTexts) => currentTexts.filter((_, idx) => idx !== index));
     onRemove?.({ index, exerciseId });
-  }
+  }, [exerciseId, onRemove]);
 
-  function onChangeValue(
+  const onChangeValue = useCallback((
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     index: number
-  ) {
-    const newValues = [...texts];
-    newValues[index] = e.target.value;
-    setTexts(newValues);
+  ) => {
+    const nextValue = e.target.value;
+    setTexts((currentTexts) => {
+      const newValues = [...currentTexts];
+      newValues[index] = nextValue;
+      return newValues;
+    });
 
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => {
-      if (currentLang.value !== "en" && !!e.target.value?.trim()) {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+    }
+
+    timerRef.current = window.setTimeout(() => {
+      if (currentLang.value !== "en" && !!nextValue.trim()) {
         translateAll(
-          [e.target.value],
+          [nextValue],
           (translatedData) => {
             onChange?.({
               index,
               exerciseId,
-              value: translatedData?.[0] ?? e.target.value,
+              value: translatedData?.[0] ?? nextValue,
             });
           },
           currentLang.value,
           "en"
         );
-      } else onChange?.({ index, exerciseId, value: e.target.value });
+      } else {
+        onChange?.({ index, exerciseId, value: nextValue });
+      }
     }, 500);
-  }
+  }, [currentLang.value, exerciseId, onChange, translateAll]);
 
   return (
     <Stack spacing={2} sx={sx}>
@@ -103,8 +122,18 @@ export function ExerciseWorkout({
             size="small"
             value={value}
             disabled={!onChange}
+            multiline
+            minRows={2}
             label={`${t("Workout_Step")} ${new Intl.NumberFormat(currentLang.value, {}).format(index + 1)} `}
             onChange={(e) => onChangeValue(e, index)}
+            sx={{
+              "& .MuiInputBase-root": {
+                alignItems: "flex-start",
+              },
+              "& .MuiInputBase-input": {
+                lineHeight: 1.5,
+              },
+            }}
             slotProps={{
               input: {
                 startAdornment: (
@@ -120,6 +149,7 @@ export function ExerciseWorkout({
                     <IconButton
                       size="small"
                       color="error"
+                      sx={{ width: 44, height: 44 }}
                       onClick={() => removeItem(index)}
                     >
                       <Iconify icon="solar:minus-circle-line-duotone" />
@@ -132,7 +162,7 @@ export function ExerciseWorkout({
         );
       })}
 
-      {onAdd ? (
+      {onAdd && !hideAddButton ? (
         <Button
           size="medium"
           color="inherit"
@@ -145,4 +175,4 @@ export function ExerciseWorkout({
       ) : null}
     </Stack>
   );
-}
+});

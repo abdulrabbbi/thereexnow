@@ -442,9 +442,15 @@ export function useGetTranslatedRoutines<
 export function useGetTranslatedRoutine(routineId: number) {
   const { authenticated } = useAuth();
 
+  const detailQueryOptions = {
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  };
+
   const { data, isLoading } = useQuery({
     enabled: authenticated && !!routineId,
-    queryKey: ["routine_getRoutine", routineId],
+    queryKey: ["routineDetail", routineId],
+    ...detailQueryOptions,
     queryFn: async () => {
       const res = await fetcher<
         Routine_GetRoutineQuery,
