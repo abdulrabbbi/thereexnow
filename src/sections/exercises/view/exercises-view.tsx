@@ -10,6 +10,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useBoard } from "@/hooks/use-board";
 import { usePagination } from "@/hooks/use-pagination";
+import { useResponsive } from "@/hooks/use-responsive";
 import { HEADER } from "@/layouts/config-layout";
 import { useSearchParams } from "@/routes/hooks";
 import { hideScrollY } from "@/theme/styles";
@@ -32,6 +33,7 @@ import Grid from "@mui/material/Grid2";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EmptyExercisesList } from "../empty-exercises-list";
 import { ExerciseCard } from "../exercise-card";
+import { HepHintBanner } from "../components/HepHintBanner";
 import { ExercisesControls } from "../exercises-controls";
 import { ExercisesMainSection } from "../exercises-main-section";
 import { ExercisesNav } from "../exercises-nav";
@@ -46,6 +48,7 @@ export function ExercisesView({ isFavorite = false }: Props) {
   const board = useBoard();
   const pagination = usePagination();
   const { authenticated } = useAuth();
+  const mdUp = useResponsive("up", "md");
   const searchParams = useSearchParams();
 
   const searchParam = searchParams?.get("keyword") ?? "";
@@ -56,6 +59,7 @@ export function ExercisesView({ isFavorite = false }: Props) {
   const [sortBy, setSortBy] = useState<ExercisesSortType>(
     ExercisesSortType.DEFAULT
   );
+  const [isHepVisible, setIsHepVisible] = useState(false);
 
   const resetPage = useCallback(
     () => pagination.onChangePage(undefined, 1),
@@ -69,6 +73,13 @@ export function ExercisesView({ isFavorite = false }: Props) {
     },
     [resetPage]
   );
+
+  const handleScrollToHep = useCallback(() => {
+    document.getElementById("hep")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, []);
 
   useEffect(() => {
     setKeyword(searchParam);
@@ -108,6 +119,8 @@ export function ExercisesView({ isFavorite = false }: Props) {
   const totalCount = isFavorite
     ? favoriteExercisesTotalCount
     : exercisesTotalCount;
+  const isMobile = !mdUp;
+  const programCount = board.data.length;
 
   const handleDragEnd = useCallback((result: DropResult) => {
     const { destination, draggableId } = result;
@@ -142,9 +155,35 @@ export function ExercisesView({ isFavorite = false }: Props) {
     resetPage();
   }, [categoryId, subCategoryId, resetPage]);
 
+  useEffect(() => {
+    if (!isMobile || programCount === 0) {
+      setIsHepVisible(false);
+      return;
+    }
+
+    const hepSection = document.getElementById("hep");
+
+    if (!hepSection) {
+      setIsHepVisible(false);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsHepVisible(entry.isIntersecting);
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(hepSection);
+
+    return () => observer.disconnect();
+  }, [isMobile, programCount]);
+
   const source = isFavorite ? "favorites" : "exercises";
 
   const showSkeletons = isFetching && !data?.length;
+  const showHepHint = isMobile && programCount > 0 && !isHepVisible;
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -213,6 +252,11 @@ export function ExercisesView({ isFavorite = false }: Props) {
               </Box>
 
               <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", mt: 2 }}>
+                <HepHintBanner
+                  show={showHepHint}
+                  onScrollToHep={handleScrollToHep}
+                />
+
                 <Box
                   sx={{
                     display: { xs: "block", lg: "flex" },
@@ -346,6 +390,7 @@ export function ExercisesView({ isFavorite = false }: Props) {
                       <Droppable droppableId="routine-droppable" type="EXERCISE">
                         {(provided) => (
                           <Box
+                            id="hep"
                             ref={provided.innerRef}
                             {...provided.droppableProps}
                             sx={{
@@ -353,6 +398,7 @@ export function ExercisesView({ isFavorite = false }: Props) {
                               width: 1,
                               minWidth: 0,
                               minHeight: { xs: 240, sm: 320, md: 480 },
+                              scrollMarginTop: { xs: 10, md: 12 },
                             }}
                           >
                             <Box
